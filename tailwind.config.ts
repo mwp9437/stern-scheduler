@@ -57,6 +57,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Stern Scheduler event colors
+        event: {
+          course: "hsl(var(--event-course))",
+          "course-foreground": "hsl(var(--event-course-foreground))",
+          internship: "hsl(var(--event-internship))",
+          "internship-foreground": "hsl(var(--event-internship-foreground))",
+          recruiting: "hsl(var(--event-recruiting))",
+          "recruiting-foreground": "hsl(var(--event-recruiting-foreground))",
+          personal: "hsl(var(--event-personal))",
+          "personal-foreground": "hsl(var(--event-personal-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
