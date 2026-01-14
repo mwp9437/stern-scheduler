@@ -18,32 +18,32 @@ export function AlternateSchedulesTable({ courses }: AlternateSchedulesTableProp
   }
 
   return (
-    <div className="border-t border-border bg-card px-6 py-4">
-      <h2 className="text-lg font-semibold mb-3">Alternate Schedule Courses</h2>
-      <div className="rounded-lg border border-border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead>Course Name</TableHead>
-              <TableHead>Section</TableHead>
-              <TableHead>Instructor</TableHead>
-              <TableHead>Meeting Times</TableHead>
-              <TableHead>Dates</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {courses.map((course) => (
-              <TableRow key={course.id}>
-                <TableCell className="font-medium">{course.course_name}</TableCell>
-                <TableCell>{course.section}</TableCell>
-                <TableCell>{course.instructor}</TableCell>
-                <TableCell>{course.meeting_times_full}</TableCell>
-                <TableCell>{course.dates_full}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+    <div className="border border-border bg-card rounded-lg overflow-hidden">
+      <div className="px-4 py-2 border-b border-border bg-muted/50">
+        <h2 className="text-sm font-semibold">Alternate Schedule Courses</h2>
       </div>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/30">
+            <TableHead className="py-1.5 text-xs">Course Name</TableHead>
+            <TableHead className="py-1.5 text-xs">Section</TableHead>
+            <TableHead className="py-1.5 text-xs">Instructor</TableHead>
+            <TableHead className="py-1.5 text-xs">Meeting Times</TableHead>
+            <TableHead className="py-1.5 text-xs">Dates</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {courses.map((course) => (
+            <TableRow key={course.id}>
+              <TableCell className="py-1.5 text-xs font-medium">{course.course_name}</TableCell>
+              <TableCell className="py-1.5 text-xs">{course.section}</TableCell>
+              <TableCell className="py-1.5 text-xs">{course.instructor}</TableCell>
+              <TableCell className="py-1.5 text-xs">{course.meeting_times_full}</TableCell>
+              <TableCell className="py-1.5 text-xs">{course.dates_full}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
