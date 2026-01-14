@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Plus, Minus } from "lucide-react";
+import { Search, Filter, Plus, Minus, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Course, isAlternateSchedule } from "@/types/scheduler";
+import { Course, isAlternateSchedule, TimeSlotFilter, courseMeetsAtTime } from "@/types/scheduler";
+import { format } from "date-fns";
 
 interface CourseFinderProps {
   courses: Course[];
@@ -20,6 +21,10 @@ interface CourseFinderProps {
   subjects: string[];
   onToggleCourse: (course: Course) => void;
   isLoading: boolean;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  timeSlotFilter: TimeSlotFilter | null;
+  onClearTimeFilter: () => void;
 }
 
 export function CourseFinder({
@@ -28,10 +33,23 @@ export function CourseFinder({
   subjects,
   onToggleCourse,
   isLoading,
+  isCollapsed,
+  onToggleCollapse,
+  timeSlotFilter,
+  onClearTimeFilter,
 }: CourseFinderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [showSelectedOnly, setShowSelectedOnly] = useState(false);
+
+  // Format time for display
+  const formatTimeFilter = (filter: TimeSlotFilter) => {
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const hour = filter.hour > 12 ? filter.hour - 12 : filter.hour;
+    const ampm = filter.hour >= 12 ? "PM" : "AM";
+    const mins = filter.minute.toString().padStart(2, "0");
+    return `${dayNames[filter.day]} ${hour}:${mins} ${ampm}`;
+  };
 
   // Filter courses
   const filteredCourses = courses.filter((course) => {
@@ -44,14 +62,60 @@ export function CourseFinder({
 
     const matchesSelected = !showSelectedOnly || selectedCourseIds.has(course.id);
 
-    return matchesSearch && matchesSubject && matchesSelected;
+    const matchesTimeSlot = !timeSlotFilter || courseMeetsAtTime(course, timeSlotFilter);
+
+    return matchesSearch && matchesSubject && matchesSelected && matchesTimeSlot;
   });
+
+  // Collapsed state - just show expand button
+  if (isCollapsed) {
+    return (
+      <div className="flex items-center justify-center h-full bg-card border-l border-border">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleCollapse}
+          className="flex flex-col items-center gap-2 p-4"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          <span className="text-xs writing-mode-vertical">Course Finder</span>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-card border-l border-border">
       {/* Header */}
       <div className="p-4 border-b border-border space-y-4">
-        <h2 className="text-lg font-semibold">Course Finder</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Course Finder</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleCollapse}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        {/* Time slot filter indicator */}
+        {timeSlotFilter && (
+          <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-md text-sm">
+            <span className="text-primary font-medium">
+              Filtering by: {formatTimeFilter(timeSlotFilter)}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearTimeFilter}
+              className="h-6 w-6 p-0 ml-auto"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
         
         {/* Search */}
         <div className="relative">
@@ -115,6 +179,16 @@ export function CourseFinder({
               const isSelected = selectedCourseIds.has(course.id);
               const isAltSchedule = isAlternateSchedule(course);
 
+              // Format time display
+              const formatTime = (time: string | null) => {
+                if (!time) return "";
+                const [h, m] = time.split(":");
+                const hour = parseInt(h);
+                const ampm = hour >= 12 ? "PM" : "AM";
+                const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                return `${hour12}:${m} ${ampm}`;
+              };
+
               return (
                 <div
                   key={course.id}
@@ -122,28 +196,46 @@ export function CourseFinder({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
+                      {/* Line 1: Course Name + Section */}
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium text-sm truncate">
                           {course.course_name}
+                          {course.section && (
+                            <span className="text-muted-foreground ml-1">
+                              ({course.section})
+                            </span>
+                          )}
                         </h3>
                         {isAltSchedule && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
                             Alt Schedule
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {course.instructor}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                        <span>{course.credits} credits</span>
-                        <span>{course.meeting_days}</span>
+                      {/* Line 2: Credits + Meeting Days + Time */}
+                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                        <span>{course.credits?.toFixed(1) ?? "0.0"} credits</span>
+                        {course.meeting_days && (
+                          <>
+                            <span>|</span>
+                            <span>{course.meeting_days}</span>
+                          </>
+                        )}
                         {course.start_time && course.end_time && (
-                          <span>
-                            {course.start_time?.slice(0, 5)} - {course.end_time?.slice(0, 5)}
-                          </span>
+                          <>
+                            <span>|</span>
+                            <span>
+                              {formatTime(course.start_time)} - {formatTime(course.end_time)}
+                            </span>
+                          </>
                         )}
                       </div>
+                      {/* Instructor on line 3 if present */}
+                      {course.instructor && (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {course.instructor}
+                        </p>
+                      )}
                     </div>
                     <Button
                       size="sm"

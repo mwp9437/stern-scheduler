@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Course, UserSchedule, CustomEventType, ScheduleStats, isAlternateSchedule } from "@/types/scheduler";
@@ -85,7 +85,7 @@ export function useUserSchedule(userId: string | undefined) {
     },
   });
 
-  // Add custom event mutation
+  // Add custom event mutation - using lowercase types for database constraint
   const addCustomEventMutation = useMutation({
     mutationFn: async (event: {
       title: string;
@@ -100,7 +100,7 @@ export function useUserSchedule(userId: string | undefined) {
         .insert({
           user_id: userId,
           custom_title: event.title,
-          custom_event_type: event.type,
+          custom_event_type: event.type, // Already lowercase from CustomEventType
           start_time: event.start.toISOString(),
           end_time: event.end.toISOString(),
         });
@@ -109,10 +109,10 @@ export function useUserSchedule(userId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user_schedules", userId] });
-      toast({ title: "Event added to schedule" });
+      toast({ title: "Block added to schedule" });
     },
     onError: (error) => {
-      toast({ title: "Failed to add event", description: error.message, variant: "destructive" });
+      toast({ title: "Failed to add block", description: error.message, variant: "destructive" });
     },
   });
 
@@ -159,10 +159,10 @@ export function useUserSchedule(userId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user_schedules", userId] });
-      toast({ title: "Event removed from schedule" });
+      toast({ title: "Block removed from schedule" });
     },
     onError: (error) => {
-      toast({ title: "Failed to remove event", description: error.message, variant: "destructive" });
+      toast({ title: "Failed to remove block", description: error.message, variant: "destructive" });
     },
   });
 
@@ -175,7 +175,7 @@ export function useUserSchedule(userId: string | undefined) {
     }
   }, [selectedCourseIds, addCourseMutation, removeCourseMutation]);
 
-  // Calculate stats
+  // Calculate stats - all formatted to 1 decimal place
   const calculateStats = useCallback((courses: Course[]): ScheduleStats => {
     const selectedCourses = courses.filter((c) => selectedCourseIds.has(c.id));
     
@@ -192,9 +192,10 @@ export function useUserSchedule(userId: string | undefined) {
         );
         const hours = minutes / 60;
         
-        if (event.custom_event_type === "Internship") {
+        // Use lowercase comparison for database values
+        if (event.custom_event_type === "internship") {
           internshipHours += hours;
-        } else if (event.custom_event_type === "Recruiting / Study") {
+        } else if (event.custom_event_type === "recruiting") {
           recruitingHours += hours;
         }
       }

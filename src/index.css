@@ -123,9 +123,20 @@
   }
 }
 
+/* Vertical text for collapsed sidebar */
+.writing-mode-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
 /* React Big Calendar custom styles */
+.calendar-container {
+  height: 420px; /* Reduced height - approximately 50% of original */
+}
+
 .rbc-calendar {
   @apply bg-card rounded-lg;
+  height: 100% !important;
 }
 
 .rbc-header {
@@ -146,6 +157,7 @@
 
 .rbc-timeslot-group {
   @apply border-b border-border/50;
+  min-height: 24px !important; /* Smaller time slots */
 }
 
 .rbc-time-slot {
@@ -156,6 +168,15 @@
   @apply border-t border-border/20;
 }
 
+/* Hover effect for empty time slots */
+.rbc-day-slot .rbc-time-slot:hover {
+  @apply bg-muted/50;
+}
+
+.calendar-slot-hover:hover {
+  @apply bg-muted/30;
+}
+
 .rbc-time-gutter {
   @apply bg-muted/50;
 }
@@ -164,12 +185,13 @@
   @apply text-xs text-muted-foreground px-2;
 }
 
+/* Remove current day highlighting */
 .rbc-today {
-  @apply bg-primary/5;
+  background-color: transparent !important;
 }
 
 .rbc-current-time-indicator {
-  @apply bg-destructive h-0.5;
+  display: none !important; /* Hide current time indicator */
 }
 
 .rbc-event {
@@ -218,4 +240,21 @@
 
 .rbc-time-view .rbc-allday-cell + .rbc-time-content {
   @apply border-t-0;
+}
+
+/* Hide dates in day headers - show only day name */
+.rbc-header {
+  text-transform: capitalize;
+}
+
+/* Make time gutter labels only show on hour marks */
+.rbc-time-gutter .rbc-timeslot-group {
+  min-height: 24px !important;
+}
+
+.rbc-time-gutter .rbc-time-slot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-right: 4px;
 }
