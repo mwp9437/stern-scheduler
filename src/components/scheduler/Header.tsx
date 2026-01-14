@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import logo from "@/assets/logo.png";
 
 interface HeaderProps {
   stats: ScheduleStats;
@@ -20,15 +21,18 @@ export function Header({ stats, isLoggedIn, onLoginClick, onLogoutClick }: Heade
   return (
     <header className="border-b border-border bg-card px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Left: Title */}
-        <h1 className="text-2xl font-bold text-primary">Stern Scheduler</h1>
+        {/* Left: Logo + Title */}
+        <div className="flex items-center gap-3">
+          <img src={logo} alt="Stern Scheduler" className="h-8 w-8" />
+          <h1 className="text-2xl font-bold text-primary">Stern Scheduler</h1>
+        </div>
 
         {/* Center: Stats */}
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
             <span className="text-sm font-medium">Total Credits:</span>
-            <span className="text-lg font-bold text-primary">{stats.totalCredits}</span>
+            <span className="text-lg font-bold text-primary">{stats.totalCredits.toFixed(1)}</span>
           </div>
           
           <div className="flex items-center gap-2">
@@ -70,23 +74,24 @@ export function Header({ stats, isLoggedIn, onLoginClick, onLogoutClick }: Heade
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1">2. Add Custom Blocks</h4>
+                  <h4 className="font-semibold mb-1">2. Filter by Time Slot</h4>
                   <p className="text-muted-foreground">
-                    Double-click any empty time slot on the calendar to add custom events 
+                    Single-click a time slot to filter courses by that time. 
+                    Double-click to add a custom block.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-1">3. Add Custom Blocks</h4>
+                  <p className="text-muted-foreground">
+                    Double-click any empty time slot on the calendar to add custom blocks 
                     like Internships, Recruiting/Study time, or Personal blocks.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1">3. Alternate Schedule Courses</h4>
+                  <h4 className="font-semibold mb-1">4. Alternate Schedule Courses</h4>
                   <p className="text-muted-foreground">
                     Courses with "Alternate Schedule" timing appear in the table below 
                     the calendar instead of on the calendar grid.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">4. Adjust Events</h4>
-                  <p className="text-muted-foreground">
-                    Drag the edges of custom events to adjust their start and end times.
                   </p>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from "react";
-import { Calendar, dateFnsLocalizer, SlotInfo, Event } from "react-big-calendar";
+import { Calendar, dateFnsLocalizer, SlotInfo } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay, setHours, setMinutes, addDays, startOfDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -10,7 +10,8 @@ import {
   parseMeetingDays, 
   parseTime, 
   isAlternateSchedule,
-  isHalfSemester 
+  isHalfSemester,
+  EVENT_TYPE_LABELS
 } from "@/types/scheduler";
 
 const locales = { "en-US": enUS };
@@ -23,6 +24,19 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
+// Custom format for day headers - day name only
+const formats = {
+  dayFormat: (date: Date) => format(date, "EEE"),
+  timeGutterFormat: (date: Date) => {
+    const minutes = date.getMinutes();
+    // Only show label on the hour
+    if (minutes === 0) {
+      return format(date, "h a");
+    }
+    return "";
+  },
+};
+
 interface ScheduleCalendarProps {
   courses: Course[];
   selectedCourseIds: Set<number>;
@@ -34,6 +48,7 @@ interface ScheduleCalendarProps {
     end_time: string | null;
   }>;
   onSlotSelect: (slotInfo: SlotInfo) => void;
+  onSlotDoubleClick: (slotInfo: SlotInfo) => void;
   onEventResize?: (event: CalendarEvent, start: Date, end: Date) => void;
 }
 
@@ -42,14 +57,13 @@ export function ScheduleCalendar({
   selectedCourseIds,
   customEvents,
   onSlotSelect,
-  onEventResize,
+  onSlotDoubleClick,
 }: ScheduleCalendarProps) {
-  // Get the current week's Monday
+  // Get a fixed week's Monday (use a constant date to avoid "today" highlighting)
   const weekStart = useMemo(() => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    return startOfDay(new Date(today.setDate(diff)));
+    // Use a fixed reference date to avoid current day highlighting
+    const referenceDate = new Date(2024, 0, 8); // A Monday
+    return startOfDay(referenceDate);
   }, []);
 
   // Convert courses and custom events to calendar events
@@ -114,13 +128,13 @@ export function ScheduleCalendar({
     
     if (event.resource.type === "custom") {
       switch (event.resource.eventType) {
-        case "Internship":
+        case "internship":
           className = "event-internship";
           break;
-        case "Recruiting / Study":
+        case "recruiting":
           className = "event-recruiting";
           break;
-        case "Personal":
+        case "personal":
           className = "event-personal";
           break;
       }
@@ -150,7 +164,9 @@ export function ScheduleCalendar({
     return (
       <div className="text-xs leading-tight">
         <div className="font-bold truncate">{event.title}</div>
-        <div className="truncate opacity-80">{event.resource.eventType}</div>
+        <div className="truncate opacity-80">
+          {event.resource.eventType ? EVENT_TYPE_LABELS[event.resource.eventType] : ""}
+        </div>
       </div>
     );
   }, []);
@@ -159,8 +175,25 @@ export function ScheduleCalendar({
   const minTime = useMemo(() => setMinutes(setHours(new Date(), 8), 0), []);
   const maxTime = useMemo(() => setMinutes(setHours(new Date(), 22), 0), []);
 
+  // Handle slot selection (single click) - triggers filtering
+  const handleSelectSlot = useCallback((slotInfo: SlotInfo) => {
+    onSlotSelect(slotInfo);
+  }, [onSlotSelect]);
+
+  // Handle double click - opens modal
+  const handleDoubleClickSlot = useCallback((slotInfo: SlotInfo) => {
+    onSlotDoubleClick(slotInfo);
+  }, [onSlotDoubleClick]);
+
+  // Custom slot prop getter for hover effect
+  const slotPropGetter = useCallback(() => {
+    return {
+      className: "calendar-slot-hover",
+    };
+  }, []);
+
   return (
-    <div className="h-full">
+    <div className="calendar-container">
       <Calendar<CalendarEvent>
         localizer={localizer}
         events={events}
@@ -174,8 +207,11 @@ export function ScheduleCalendar({
         onNavigate={() => {}} // Disable navigation
         toolbar={false}
         selectable
-        onSelectSlot={onSlotSelect}
+        onSelectSlot={handleSelectSlot}
+        onDoubleClickSlot={handleDoubleClickSlot}
         eventPropGetter={eventPropGetter}
+        slotPropGetter={slotPropGetter}
+        formats={formats}
         components={{
           event: EventComponent,
         }}
