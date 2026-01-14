@@ -131,7 +131,7 @@
 
 /* React Big Calendar custom styles */
 .calendar-container {
-  height: 420px; /* Reduced height - approximately 50% of original */
+  height: 600px; /* Taller to show 9AM-9PM without scrolling */
 }
 
 .rbc-calendar {
@@ -168,13 +168,21 @@
   @apply border-t border-border/20;
 }
 
-/* Hover effect for empty time slots */
-.rbc-day-slot .rbc-time-slot:hover {
-  @apply bg-muted/50;
+/* Hover effect for empty time slots - entire cell */
+.rbc-day-slot .rbc-timeslot-group:hover {
+  @apply bg-muted/40;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  @apply transition-colors;
+}
+
+.calendar-slot-hover {
+  @apply transition-colors;
 }
 
 .calendar-slot-hover:hover {
-  @apply bg-muted/30;
+  @apply bg-muted/40;
 }
 
 .rbc-time-gutter {

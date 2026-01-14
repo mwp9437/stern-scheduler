@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useRef } from "react";
 import { Calendar, dateFnsLocalizer, SlotInfo } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay, setHours, setMinutes, addDays, startOfDay } from "date-fns";
 import { enUS } from "date-fns/locale";
@@ -175,20 +175,42 @@ export function ScheduleCalendar({
   const minTime = useMemo(() => setMinutes(setHours(new Date(), 8), 0), []);
   const maxTime = useMemo(() => setMinutes(setHours(new Date(), 22), 0), []);
 
-  // Handle slot selection (single click) - triggers filtering
-  const handleSelectSlot = useCallback((slotInfo: SlotInfo) => {
-    onSlotSelect(slotInfo);
-  }, [onSlotSelect]);
+  // Use refs to track click timing for double-click detection
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSlotRef = useRef<SlotInfo | null>(null);
 
-  // Handle double click - opens modal
-  const handleDoubleClickSlot = useCallback((slotInfo: SlotInfo) => {
-    onSlotDoubleClick(slotInfo);
-  }, [onSlotDoubleClick]);
+  // Handle slot selection - use timeout to differentiate single vs double click
+  const handleSelectSlot = useCallback((slotInfo: SlotInfo) => {
+    // Clear any existing timeout
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+    }
+
+    // Check if this is a double-click (same slot within 300ms)
+    if (
+      lastSlotRef.current &&
+      lastSlotRef.current.start.getTime() === slotInfo.start.getTime() &&
+      lastSlotRef.current.end.getTime() === slotInfo.end.getTime()
+    ) {
+      // This is a double-click - open modal
+      lastSlotRef.current = null;
+      onSlotDoubleClick(slotInfo);
+      return;
+    }
+
+    // Store this slot and set timeout for single-click behavior
+    lastSlotRef.current = slotInfo;
+    clickTimeoutRef.current = setTimeout(() => {
+      // Single click - filter courses
+      onSlotSelect(slotInfo);
+      lastSlotRef.current = null;
+    }, 300);
+  }, [onSlotSelect, onSlotDoubleClick]);
 
   // Custom slot prop getter for hover effect
   const slotPropGetter = useCallback(() => {
     return {
-      className: "calendar-slot-hover",
+      className: "calendar-slot-hover cursor-pointer",
     };
   }, []);
 
@@ -208,7 +230,6 @@ export function ScheduleCalendar({
         toolbar={false}
         selectable
         onSelectSlot={handleSelectSlot}
-        onDoubleClickSlot={handleDoubleClickSlot}
         eventPropGetter={eventPropGetter}
         slotPropGetter={slotPropGetter}
         formats={formats}
