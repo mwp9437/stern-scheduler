@@ -21,7 +21,10 @@ export function Header({ stats, isLoggedIn, onLoginClick, onLogoutClick }: Heade
     <header className="border-b border-border bg-card px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Left: Title */}
-        <h1 className="text-2xl font-bold text-primary">Stern Scheduler</h1>
+        <div className="flex items-center gap-2">
+          <img src="/favicon.png" alt="Stern Scheduler" className="h-8 w-8" />
+          <h1 className="text-2xl font-bold text-primary">Stern Scheduler</h1>
+        </div>
 
         {/* Center: Stats */}
         <div className="flex items-center gap-8">
