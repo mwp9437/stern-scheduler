@@ -194,21 +194,21 @@ export function CourseFinder({
                   key={course.id}
                   className="p-4 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       {/* Line 1: Course Name + Section */}
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-sm truncate">
-                          {course.course_name}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <h3 className="font-medium text-sm truncate flex-1 min-w-0">
+                          <span className="truncate">{course.course_name}</span>
                           {course.section && (
-                            <span className="text-muted-foreground ml-1">
+                            <span className="text-muted-foreground ml-1 shrink-0">
                               ({course.section})
                             </span>
                           )}
                         </h3>
                         {isAltSchedule && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
-                            Alt Schedule
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0 whitespace-nowrap">
+                            Alt
                           </span>
                         )}
                       </div>

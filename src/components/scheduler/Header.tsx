@@ -23,7 +23,12 @@ export function Header({ stats, isLoggedIn, onLoginClick, onLogoutClick }: Heade
       <div className="flex items-center justify-between">
         {/* Left: Logo + Title */}
         <div className="flex items-center gap-3">
-          <img src={logo} alt="Stern Scheduler" className="h-8 w-8" />
+          <img 
+            src={logo} 
+            alt="Stern Scheduler" 
+            className="h-10 w-10 object-contain"
+            style={{ aspectRatio: "1 / 1" }}
+          />
           <h1 className="text-2xl font-bold text-primary">Stern Scheduler</h1>
         </div>
 
@@ -68,32 +73,34 @@ export function Header({ stats, isLoggedIn, onLoginClick, onLogoutClick }: Heade
               <div className="space-y-4 text-sm">
                 <div>
                   <h4 className="font-semibold mb-1">1. Search & Add Courses</h4>
-                  <p className="text-muted-foreground">
-                    Use the search bar and filters on the right panel to find courses. 
-                    Click "Add" to add them to your schedule.
+                  <p className="text-muted-foreground mb-2">
+                    a. Use the search bar and filters on the right panel to find courses. Search by course name or professor.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    b. <strong>Filter by Time Slot:</strong> Single-click a time slot on the calendar to filter courses in the course finder.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    c. Click "Add" to add a course to your schedule.
+                  </p>
+                  <p className="text-muted-foreground text-xs italic">
+                    Note: Courses with "Alternate Schedule" timing appear in the table below the calendar instead.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1">2. Filter by Time Slot</h4>
+                  <h4 className="font-semibold mb-1">2. Add Custom Blocks</h4>
                   <p className="text-muted-foreground">
-                    Single-click a time slot to filter courses by that time. 
-                    Double-click to add a custom block.
+                    Double-click any empty time slot on the calendar to add custom blocks like Internships, Recruiting/Study time, or Personal blocks.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1">3. Add Custom Blocks</h4>
+                  <h4 className="font-semibold mb-1">3. Review Summary Stats</h4>
                   <p className="text-muted-foreground">
-                    Double-click any empty time slot on the calendar to add custom blocks 
-                    like Internships, Recruiting/Study time, or Personal blocks.
+                    Review the summary statistics at the top of the calendar.
                   </p>
                 </div>
-                <div>
-                  <h4 className="font-semibold mb-1">4. Alternate Schedule Courses</h4>
-                  <p className="text-muted-foreground">
-                    Courses with "Alternate Schedule" timing appear in the table below 
-                    the calendar instead of on the calendar grid.
-                  </p>
-                </div>
+                <p className="text-muted-foreground text-xs italic pt-2 border-t border-border">
+                  Note: Please double check course schedules and availability in Albert.
+                </p>
               </div>
             </DialogContent>
           </Dialog>
