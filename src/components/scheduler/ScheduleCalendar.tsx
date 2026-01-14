@@ -1,8 +1,10 @@
 import { useMemo, useCallback, useRef } from "react";
 import { Calendar, dateFnsLocalizer, SlotInfo } from "react-big-calendar";
+import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import { format, parse, startOfWeek, getDay, setHours, setMinutes, addDays, startOfDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import { 
   Course, 
   CalendarEvent, 
@@ -23,6 +25,9 @@ const localizer = dateFnsLocalizer({
   getDay,
   locales,
 });
+
+// Create drag-and-drop enabled calendar
+const DnDCalendar = withDragAndDrop<CalendarEvent>(Calendar);
 
 // Custom format for day headers - day name only
 const formats = {
@@ -49,7 +54,10 @@ interface ScheduleCalendarProps {
   }>;
   onSlotSelect: (slotInfo: SlotInfo) => void;
   onSlotDoubleClick: (slotInfo: SlotInfo) => void;
-  onEventResize?: (event: CalendarEvent, start: Date, end: Date) => void;
+  onEventSelect?: (event: CalendarEvent) => void;
+  onEventDrop?: (eventId: string, start: Date, end: Date) => void;
+  onEventResize?: (eventId: string, start: Date, end: Date) => void;
+  hasAlternateSchedules?: boolean;
 }
 
 export function ScheduleCalendar({
@@ -58,6 +66,10 @@ export function ScheduleCalendar({
   customEvents,
   onSlotSelect,
   onSlotDoubleClick,
+  onEventSelect,
+  onEventDrop,
+  onEventResize,
+  hasAlternateSchedules = false,
 }: ScheduleCalendarProps) {
   // Get a fixed week's Monday (use a constant date to avoid "today" highlighting)
   const weekStart = useMemo(() => {
@@ -207,16 +219,54 @@ export function ScheduleCalendar({
     }, 300);
   }, [onSlotSelect, onSlotDoubleClick]);
 
+  // Handle event selection (double-click to edit custom events)
+  const handleSelectEvent = useCallback((event: CalendarEvent) => {
+    // Only allow editing custom events
+    if (event.resource.type === "custom" && onEventSelect) {
+      onEventSelect(event);
+    }
+  }, [onEventSelect]);
+
+  // Handle drag and drop for custom events
+  const handleEventDrop = useCallback(({ event, start, end }: { event: CalendarEvent; start: Date | string; end: Date | string }) => {
+    // Only allow dragging custom events
+    if (event.resource.type === "custom" && onEventDrop) {
+      onEventDrop(event.id, new Date(start), new Date(end));
+    }
+  }, [onEventDrop]);
+
+  // Handle resize for custom events
+  const handleEventResize = useCallback(({ event, start, end }: { event: CalendarEvent; start: Date | string; end: Date | string }) => {
+    // Only allow resizing custom events
+    if (event.resource.type === "custom" && onEventResize) {
+      onEventResize(event.id, new Date(start), new Date(end));
+    }
+  }, [onEventResize]);
+
+  // Determine if event is draggable/resizable
+  const draggableAccessor = useCallback((event: CalendarEvent) => {
+    return event.resource.type === "custom";
+  }, []);
+
+  const resizableAccessor = useCallback((event: CalendarEvent) => {
+    return event.resource.type === "custom";
+  }, []);
+
   // Custom slot prop getter for hover effect
   const slotPropGetter = useCallback(() => {
     return {
-      className: "calendar-slot-hover cursor-pointer",
+      className: "calendar-slot-hover",
     };
   }, []);
 
+  // Dynamic height based on alternate schedules
+  const containerClass = hasAlternateSchedules
+    ? "calendar-container calendar-with-alt"
+    : "calendar-container calendar-full";
+
   return (
-    <div className="calendar-container">
-      <Calendar<CalendarEvent>
+    <div className={containerClass}>
+      <DnDCalendar
         localizer={localizer}
         events={events}
         defaultView="week"
@@ -229,7 +279,13 @@ export function ScheduleCalendar({
         onNavigate={() => {}} // Disable navigation
         toolbar={false}
         selectable
+        resizable
         onSelectSlot={handleSelectSlot}
+        onSelectEvent={handleSelectEvent}
+        onEventDrop={handleEventDrop}
+        onEventResize={handleEventResize}
+        draggableAccessor={draggableAccessor}
+        resizableAccessor={resizableAccessor}
         eventPropGetter={eventPropGetter}
         slotPropGetter={slotPropGetter}
         formats={formats}

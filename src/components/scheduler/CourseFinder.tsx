@@ -192,28 +192,29 @@ export function CourseFinder({
               return (
                 <div
                   key={course.id}
-                  className="p-4 hover:bg-muted/50 transition-colors"
+                  className="p-3 hover:bg-muted/50 transition-colors"
                 >
-                <div className="flex items-center gap-3">
+                  <div className="flex w-full justify-between items-center gap-2">
+                    {/* Text Container - must have min-w-0 for truncation to work */}
                     <div className="flex-1 min-w-0 overflow-hidden">
                       {/* Line 1: Course Name + Section */}
-                      <div className="flex items-center gap-2 min-w-0">
-                        <h3 className="font-medium text-sm truncate flex-1 min-w-0">
-                          <span className="truncate">{course.course_name}</span>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <h3 className="font-medium text-sm truncate">
+                          {course.course_name}
                           {course.section && (
-                            <span className="text-muted-foreground ml-1 shrink-0">
+                            <span className="text-muted-foreground ml-1">
                               ({course.section})
                             </span>
                           )}
                         </h3>
                         {isAltSchedule && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0 whitespace-nowrap">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0">
                             Alt
                           </span>
                         )}
                       </div>
                       {/* Line 2: Credits + Meeting Days + Time */}
-                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground truncate">
                         <span>{course.credits?.toFixed(1) ?? "0.0"} credits</span>
                         {course.meeting_days && (
                           <>
@@ -224,7 +225,7 @@ export function CourseFinder({
                         {course.start_time && course.end_time && (
                           <>
                             <span>|</span>
-                            <span>
+                            <span className="truncate">
                               {formatTime(course.start_time)} - {formatTime(course.end_time)}
                             </span>
                           </>
@@ -237,11 +238,12 @@ export function CourseFinder({
                         </p>
                       )}
                     </div>
+                    {/* Button - flex-shrink-0 ensures it never shrinks */}
                     <Button
                       size="sm"
                       variant={isSelected ? "destructive" : "default"}
                       onClick={() => onToggleCourse(course)}
-                      className="shrink-0"
+                      className="flex-shrink-0 ml-2"
                     >
                       {isSelected ? (
                         <>

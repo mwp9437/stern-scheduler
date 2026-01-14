@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format, setHours, setMinutes, getHours, getMinutes } from "date-fns";
-import { CustomEventType, EVENT_TYPE_LABELS } from "@/types/scheduler";
+import { CustomEventType, EVENT_TYPE_LABELS, CalendarEvent } from "@/types/scheduler";
 import {
   Dialog,
   DialogContent,
@@ -17,14 +17,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Briefcase, BookOpen, User } from "lucide-react";
+import { Briefcase, BookOpen, User, Trash2 } from "lucide-react";
 
 interface AddEventModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (event: { title: string; type: CustomEventType; start: Date; end: Date }) => void;
+  onUpdate?: (eventId: string, start: Date, end: Date) => void;
+  onDelete?: (eventId: string) => void;
   slotStart: Date | null;
   slotEnd: Date | null;
+  editingEvent?: CalendarEvent | null;
 }
 
 const eventTypes: { type: CustomEventType; label: string; icon: React.ReactNode; colorClass: string }[] = [
@@ -66,85 +69,142 @@ const generateTimeOptions = () => {
 
 const timeOptions = generateTimeOptions();
 
-export function AddEventModal({ isOpen, onClose, onAdd, slotStart, slotEnd }: AddEventModalProps) {
+export function AddEventModal({ 
+  isOpen, 
+  onClose, 
+  onAdd, 
+  onUpdate,
+  onDelete,
+  slotStart, 
+  slotEnd,
+  editingEvent 
+}: AddEventModalProps) {
   const [selectedType, setSelectedType] = useState<CustomEventType | null>(null);
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
 
-  // Initialize times when modal opens
+  const isEditMode = !!editingEvent;
+
+  // Initialize state when modal opens
   useEffect(() => {
-    if (slotStart && slotEnd) {
-      const formatTimeValue = (date: Date) => {
-        const h = getHours(date);
-        const m = getMinutes(date);
-        return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
-      };
-      setStartTime(formatTimeValue(slotStart));
-      setEndTime(formatTimeValue(slotEnd));
+    if (isOpen) {
+      if (editingEvent) {
+        // Edit mode - populate from existing event
+        setSelectedType(editingEvent.resource.eventType || null);
+        const formatTimeValue = (date: Date) => {
+          const h = getHours(date);
+          const m = getMinutes(date);
+          return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        };
+        setStartTime(formatTimeValue(editingEvent.start));
+        setEndTime(formatTimeValue(editingEvent.end));
+      } else if (slotStart && slotEnd) {
+        // Add mode - populate from slot selection
+        const formatTimeValue = (date: Date) => {
+          const h = getHours(date);
+          const m = getMinutes(date);
+          return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        };
+        setStartTime(formatTimeValue(slotStart));
+        setEndTime(formatTimeValue(slotEnd));
+        setSelectedType(null);
+      }
     }
-  }, [slotStart, slotEnd, isOpen]);
+  }, [slotStart, slotEnd, isOpen, editingEvent]);
 
   const handleSubmit = () => {
-    if (!selectedType || !slotStart || !startTime || !endTime) return;
+    if (!startTime || !endTime) return;
 
     const [startH, startM] = startTime.split(":").map(Number);
     const [endH, endM] = endTime.split(":").map(Number);
 
-    const start = setMinutes(setHours(slotStart, startH), startM);
-    const end = setMinutes(setHours(slotStart, endH), endM);
+    const baseDate = editingEvent?.start || slotStart;
+    if (!baseDate) return;
 
-    // Auto-set title based on type
-    const title = EVENT_TYPE_LABELS[selectedType];
+    const start = setMinutes(setHours(baseDate, startH), startM);
+    const end = setMinutes(setHours(baseDate, endH), endM);
 
-    onAdd({
-      title,
-      type: selectedType,
-      start,
-      end,
-    });
+    if (isEditMode && editingEvent && onUpdate) {
+      // Update existing event
+      onUpdate(editingEvent.id, start, end);
+    } else if (selectedType) {
+      // Add new event
+      const title = EVENT_TYPE_LABELS[selectedType];
+      onAdd({
+        title,
+        type: selectedType,
+        start,
+        end,
+      });
+    }
 
-    setSelectedType(null);
-    onClose();
+    handleClose();
+  };
+
+  const handleDelete = () => {
+    if (isEditMode && editingEvent && onDelete) {
+      onDelete(editingEvent.id);
+      handleClose();
+    }
   };
 
   const handleClose = () => {
     setSelectedType(null);
+    setStartTime("");
+    setEndTime("");
     onClose();
   };
+
+  const canSubmit = isEditMode 
+    ? (startTime && endTime)
+    : (selectedType && startTime && endTime);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Custom Block</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Custom Block" : "Add Custom Block"}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          {slotStart && (
+          {(slotStart || editingEvent) && (
             <div className="text-sm text-muted-foreground">
-              {format(slotStart, "EEEE, MMM d")}
+              {format(editingEvent?.start || slotStart!, "EEEE, MMM d")}
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>Block Type</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {eventTypes.map((eventType) => (
-                <button
-                  key={eventType.type}
-                  onClick={() => setSelectedType(eventType.type)}
-                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-                    selectedType === eventType.type
-                      ? `${eventType.colorClass} border-primary`
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  {eventType.icon}
-                  <span className="text-xs font-medium">{eventType.label}</span>
-                </button>
-              ))}
+          {/* Only show type selector in Add mode */}
+          {!isEditMode && (
+            <div className="space-y-2">
+              <Label>Block Type</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {eventTypes.map((eventType) => (
+                  <button
+                    key={eventType.type}
+                    onClick={() => setSelectedType(eventType.type)}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                      selectedType === eventType.type
+                        ? `${eventType.colorClass} border-primary`
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {eventType.icon}
+                    <span className="text-xs font-medium">{eventType.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Show current type in Edit mode */}
+          {isEditMode && editingEvent?.resource.eventType && (
+            <div className="space-y-2">
+              <Label>Block Type</Label>
+              <div className="text-sm font-medium text-foreground">
+                {EVENT_TYPE_LABELS[editingEvent.resource.eventType]}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -180,12 +240,18 @@ export function AddEventModal({ isOpen, onClose, onAdd, slotStart, slotEnd }: Ad
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex gap-2">
+          {isEditMode && onDelete && (
+            <Button variant="destructive" onClick={handleDelete} className="mr-auto">
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          )}
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!selectedType || !startTime || !endTime}>
-            Add Block
+          <Button onClick={handleSubmit} disabled={!canSubmit}>
+            {isEditMode ? "Save Changes" : "Add Block"}
           </Button>
         </DialogFooter>
       </DialogContent>
