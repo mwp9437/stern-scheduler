@@ -186,15 +186,15 @@ export function CourseFinder({
     }
   };
 
-  // Collapsed state - button aligned to top
+  // Collapsed state - button aligned to top with ChevronLeft icon
   if (isCollapsed) {
     return (
-      <div className="flex flex-col items-center h-full bg-card border-l border-border pt-4">
+      <div className="flex flex-col items-start h-full bg-card border-l border-border pt-4 px-1">
         <Button
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="flex flex-col items-center gap-2 p-4"
+          className="flex flex-col items-center gap-2 p-3"
         >
           <ChevronLeft className="h-5 w-5" />
           <span className="text-xs writing-mode-vertical">Course Finder</span>
@@ -260,7 +260,7 @@ export function CourseFinder({
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-4 space-y-4" align="end">
+            <PopoverContent className="w-80 p-4 space-y-4 max-h-[60vh] overflow-y-auto" align="end">
               <div className="font-medium text-sm">Filters</div>
               
               {/* Subject */}
@@ -403,70 +403,51 @@ export function CourseFinder({
               return (
                 <div
                   key={course.id}
-                  className="p-2.5 hover:bg-muted/50 transition-colors"
+                  className="flex w-full items-start gap-3 p-3 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex w-full items-start gap-2">
-                    {/* Button on LEFT - flex-shrink-0 ensures it never shrinks */}
+                  {/* LEFT COLUMN: Actions (Fixed Width) */}
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                    {/* Icon-Only Button */}
                     <Button
-                      size="sm"
+                      size="icon"
                       variant={isSelected ? "destructive" : "default"}
                       onClick={() => onToggleCourse(course)}
-                      className="flex-shrink-0 h-7 px-2 text-xs"
+                      className="h-8 w-8"
                     >
                       {isSelected ? (
-                        <>
-                          <Minus className="h-3 w-3 mr-1" />
-                          Remove
-                        </>
+                        <Minus className="h-4 w-4" />
                       ) : (
-                        <>
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add
-                        </>
+                        <Plus className="h-4 w-4" />
                       )}
                     </Button>
 
-                    {/* Text Container - must have min-w-0 for truncation to work */}
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      {/* Line 1: Course Name + Section + Badge */}
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <h3 className="font-medium text-sm truncate">
-                          {course.course_name}
-                          {course.section && (
-                            <span className="text-muted-foreground font-normal ml-1">
-                              (Section: {course.section})
-                            </span>
-                          )}
-                        </h3>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${getDurationBadgeClass(durationType)}`}>
-                          {DURATION_TYPE_LABELS[durationType]}
-                        </span>
-                      </div>
-                      {/* Line 2: Credits + Meeting Days + Time */}
-                      <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
-                        <span>{course.credits?.toFixed(1) ?? "0.0"} cr</span>
-                        {course.meeting_days && (
-                          <>
-                            <span>|</span>
-                            <span>{course.meeting_days}</span>
-                          </>
-                        )}
-                        {course.start_time && course.end_time && (
-                          <>
-                            <span>|</span>
-                            <span className="truncate">
-                              {formatTime(course.start_time)} - {formatTime(course.end_time)}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      {/* Instructor on line 3 if present */}
-                      {course.instructor && (
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {course.instructor}
-                        </p>
+                    {/* Badge Stacked Under Button */}
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded text-center ${getDurationBadgeClass(durationType)}`}>
+                      {DURATION_TYPE_LABELS[durationType]}
+                    </span>
+                  </div>
+
+                  {/* RIGHT COLUMN: Course Info (Takes remaining space) */}
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <h3 className="font-medium text-sm truncate">{course.course_name}</h3>
+                    {course.section && (
+                      <p className="text-xs text-muted-foreground truncate mb-1">
+                        (Section: {course.section})
+                      </p>
+                    )}
+                    {/* Credits | Days | Time */}
+                    <div className="text-xs text-muted-foreground truncate">
+                      {course.credits?.toFixed(1) ?? "0.0"} credits
+                      {course.meeting_days && ` | ${course.meeting_days}`}
+                      {course.start_time && course.end_time && (
+                        <> | {formatTime(course.start_time)} - {formatTime(course.end_time)}</>
                       )}
                     </div>
+                    {course.instructor && (
+                      <div className="text-xs text-muted-foreground truncate mt-0.5">
+                        {course.instructor}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
