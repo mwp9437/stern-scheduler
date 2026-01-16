@@ -33,7 +33,7 @@ export function AlternateSchedulesTable({ courses, defaultOpen = true }: Alterna
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="border border-border bg-card rounded-lg overflow-hidden">
         <CollapsibleTrigger asChild>
-          <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors">
+          <div className="flex items-center justify-between px-3 py-1 border-b border-border bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors">
             <h2 className="text-xs font-semibold">
               Alternate Schedule Courses ({courses.length})
             </h2>
