@@ -186,19 +186,21 @@ export function CourseFinder({
     }
   };
 
-  // Collapsed state - button aligned to top with ChevronLeft icon
+  // Collapsed state - button aligned to top with arrow icon pointing left (expand direction)
   if (isCollapsed) {
     return (
-      <div className="flex flex-col items-start h-full bg-card border-l border-border pt-4 px-1">
+      <div className="flex flex-col items-center h-full bg-card border-l border-border pt-4 px-2">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={onToggleCollapse}
-          className="flex flex-col items-center gap-2 p-3"
+          className="flex items-center gap-1 px-2 py-1"
         >
-          <ChevronLeft className="h-5 w-5" />
-          <span className="text-xs writing-mode-vertical">Course Finder</span>
+          <ChevronLeft className="h-4 w-4" />
         </Button>
+        <span className="text-xs text-muted-foreground mt-2 [writing-mode:vertical-lr] rotate-180">
+          Course Finder
+        </span>
       </div>
     );
   }
