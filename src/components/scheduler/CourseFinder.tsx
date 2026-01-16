@@ -407,23 +407,29 @@ export function CourseFinder({
                 >
                   {/* LEFT COLUMN: Actions (Fixed Width) */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    {/* Icon-Only Button */}
+                    {/* Icon-Only Button - h-5 w-5 */}
                     <Button
                       size="icon"
                       variant={isSelected ? "destructive" : "default"}
                       onClick={() => onToggleCourse(course)}
-                      className="h-8 w-8"
+                      className="h-5 w-5 min-h-5 min-w-5"
                     >
                       {isSelected ? (
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-3 w-3" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-3 w-3" />
                       )}
                     </Button>
 
-                    {/* Badge Stacked Under Button */}
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded text-center ${getDurationBadgeClass(durationType)}`}>
-                      {DURATION_TYPE_LABELS[durationType]}
+                    {/* Badge Stacked Under Button - Two lines for 1st/2nd Half */}
+                    <span className={`text-[9px] leading-tight px-1 py-0.5 rounded text-center ${getDurationBadgeClass(durationType)}`}>
+                      {durationType === "first_half" ? (
+                        <>1st<br/>Half</>
+                      ) : durationType === "second_half" ? (
+                        <>2nd<br/>Half</>
+                      ) : (
+                        DURATION_TYPE_LABELS[durationType]
+                      )}
                     </span>
                   </div>
 

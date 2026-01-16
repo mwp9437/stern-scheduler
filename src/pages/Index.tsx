@@ -117,9 +117,9 @@ const Index = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Calendar + Alternate Table Column - Dynamic Height */}
-        <div className={`flex flex-col h-[calc(100vh-140px)] ${courseFinderCollapsed ? "flex-1" : "w-[70%]"}`}>
+        <div className={`flex flex-col h-[calc(100vh-100px)] ${courseFinderCollapsed ? "flex-1" : "w-[70%]"}`}>
           {/* Calendar - flex-grow to fill available space */}
-          <div className="p-4 flex-grow min-h-0">
+          <div className="px-4 pt-2 pb-1 flex-grow min-h-0">
             <ScheduleCalendar
               courses={courses}
               selectedCourseIds={selectedCourseIds}
@@ -135,7 +135,7 @@ const Index = () => {
           
           {/* Alternate Schedule Table - only if there are alternate courses */}
           {hasAlternateSchedules && (
-            <div className="px-4 pb-10 flex-shrink-0 max-h-[300px] overflow-auto">
+            <div className="px-4 pb-4 pt-1 flex-shrink-0 max-h-[300px] overflow-auto">
               <AlternateSchedulesTable 
                 courses={alternateScheduleCourses} 
                 defaultOpen={true}

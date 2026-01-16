@@ -1,10 +1,9 @@
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-muted/50 px-6 py-4">
-      <div className="text-center space-y-2">
+    <footer className="border-t border-border bg-muted/50 px-6 py-2">
+      <div className="text-center space-y-1">
         <p className="text-sm text-muted-foreground">
-          If you enjoyed Stern Scheduler please consider making a donation to my sixth annual 
-          Pan-Mass Challenge fundraiser for the Dana-Farber Cancer Institute via venmo{" "}
+          If you enjoyed Stern Scheduler please consider making a donation to my sixth annual Pan-Mass Challenge fundraiser for the Dana-Farber Cancer Institute via venmo{" "}
           <span className="font-medium text-foreground">@mikepezza</span> or via{" "}
           <a 
             href="https://profile.pmc.org/MP0430" 
