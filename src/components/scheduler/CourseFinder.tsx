@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Search, Filter, Plus, Minus, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Search, Filter, Plus, Minus, ChevronLeft, ChevronRight, X, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -12,8 +13,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Course, isAlternateSchedule, TimeSlotFilter, courseMeetsAtTime } from "@/types/scheduler";
-import { format } from "date-fns";
+import { 
+  Course, 
+  isAlternateSchedule, 
+  TimeSlotFilter, 
+  courseMeetsAtTime,
+  getDurationType,
+  DURATION_TYPE_LABELS,
+  DurationType,
+  coursesConflict,
+  courseConflictsWithEvent
+} from "@/types/scheduler";
 
 interface CourseFinderProps {
   courses: Course[];
@@ -25,6 +35,22 @@ interface CourseFinderProps {
   onToggleCollapse: () => void;
   timeSlotFilter: TimeSlotFilter | null;
   onClearTimeFilter: () => void;
+  customEvents?: Array<{
+    id: string;
+    start_time: string | null;
+    end_time: string | null;
+  }>;
+}
+
+// Get unique credit values from courses
+function getUniqueCredits(courses: Course[]): number[] {
+  const credits = new Set<number>();
+  courses.forEach((c) => {
+    if (c.credits !== null && c.credits !== undefined) {
+      credits.add(c.credits);
+    }
+  });
+  return Array.from(credits).sort((a, b) => a - b);
 }
 
 export function CourseFinder({
@@ -37,10 +63,22 @@ export function CourseFinder({
   onToggleCollapse,
   timeSlotFilter,
   onClearTimeFilter,
+  customEvents = [],
 }: CourseFinderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [showSelectedOnly, setShowSelectedOnly] = useState(false);
+  const [hideConflicts, setHideConflicts] = useState(false);
+  const [creditsFilter, setCreditsFilter] = useState<string | null>(null);
+  const [durationFilter, setDurationFilter] = useState<string | null>(null);
+
+  // Get unique credit values
+  const uniqueCredits = useMemo(() => getUniqueCredits(courses), [courses]);
+
+  // Get selected courses for conflict checking
+  const selectedCourses = useMemo(() => {
+    return courses.filter((c) => selectedCourseIds.has(c.id));
+  }, [courses, selectedCourseIds]);
 
   // Format time for display
   const formatTimeFilter = (filter: TimeSlotFilter) => {
@@ -51,21 +89,69 @@ export function CourseFinder({
     return `${dayNames[filter.day]} ${hour}:${mins} ${ampm}`;
   };
 
+  // Check if a course has conflicts
+  const hasConflict = (course: Course): boolean => {
+    // Check against selected courses
+    for (const selectedCourse of selectedCourses) {
+      if (selectedCourse.id !== course.id && coursesConflict(course, selectedCourse)) {
+        return true;
+      }
+    }
+    
+    // Check against custom events
+    for (const event of customEvents) {
+      if (event.start_time && event.end_time) {
+        if (courseConflictsWithEvent(course, new Date(event.start_time), new Date(event.end_time))) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
   // Filter courses
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch =
-      !searchQuery ||
-      course.course_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.instructor?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredCourses = useMemo(() => {
+    return courses.filter((course) => {
+      const matchesSearch =
+        !searchQuery ||
+        course.course_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.instructor?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesSubject = !subjectFilter || subjectFilter === "all" || course.subject === subjectFilter;
+      const matchesSubject = !subjectFilter || subjectFilter === "all" || course.subject === subjectFilter;
 
-    const matchesSelected = !showSelectedOnly || selectedCourseIds.has(course.id);
+      const matchesSelected = !showSelectedOnly || selectedCourseIds.has(course.id);
 
-    const matchesTimeSlot = !timeSlotFilter || courseMeetsAtTime(course, timeSlotFilter);
+      const matchesTimeSlot = !timeSlotFilter || courseMeetsAtTime(course, timeSlotFilter);
 
-    return matchesSearch && matchesSubject && matchesSelected && matchesTimeSlot;
-  });
+      const matchesCredits = !creditsFilter || creditsFilter === "all" || 
+        course.credits?.toString() === creditsFilter;
+
+      const courseDurationType = getDurationType(course);
+      const matchesDuration = !durationFilter || durationFilter === "all" || 
+        courseDurationType === durationFilter;
+
+      const matchesConflict = !hideConflicts || !hasConflict(course);
+
+      return matchesSearch && matchesSubject && matchesSelected && matchesTimeSlot && 
+             matchesCredits && matchesDuration && matchesConflict;
+    });
+  }, [courses, searchQuery, subjectFilter, showSelectedOnly, selectedCourseIds, 
+      timeSlotFilter, creditsFilter, durationFilter, hideConflicts, selectedCourses, customEvents]);
+
+  // Get duration badge styling
+  const getDurationBadgeClass = (durationType: DurationType): string => {
+    switch (durationType) {
+      case "first_half":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
+      case "second_half":
+        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300";
+      case "alternate":
+        return "bg-muted text-muted-foreground";
+      default:
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
+    }
+  };
 
   // Collapsed state - just show expand button
   if (isCollapsed) {
@@ -87,7 +173,7 @@ export function CourseFinder({
   return (
     <div className="flex flex-col h-full bg-card border-l border-border">
       {/* Header */}
-      <div className="p-4 border-b border-border space-y-4">
+      <div className="p-4 border-b border-border space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Course Finder</h2>
           <Button
@@ -128,8 +214,8 @@ export function CourseFinder({
           />
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-4">
+        {/* Filters Row 1: Subject */}
+        <div className="flex items-center gap-2">
           <div className="flex-1">
             <Select 
               value={subjectFilter ?? "all"} 
@@ -151,15 +237,68 @@ export function CourseFinder({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="selected-only"
-            checked={showSelectedOnly}
-            onCheckedChange={setShowSelectedOnly}
-          />
-          <Label htmlFor="selected-only" className="text-sm">
-            Show Selected Only
-          </Label>
+        {/* Filters Row 2: Credits + Duration */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <Select 
+              value={creditsFilter ?? "all"} 
+              onValueChange={(value) => setCreditsFilter(value === "all" ? null : value)}
+            >
+              <SelectTrigger className="w-full text-sm">
+                <SelectValue placeholder="Credits" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Credits</SelectItem>
+                {uniqueCredits.map((credit) => (
+                  <SelectItem key={credit} value={credit.toString()}>
+                    {credit.toFixed(1)} credits
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <Select 
+              value={durationFilter ?? "all"} 
+              onValueChange={(value) => setDurationFilter(value === "all" ? null : value)}
+            >
+              <SelectTrigger className="w-full text-sm">
+                <SelectValue placeholder="Duration" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Durations</SelectItem>
+                <SelectItem value="full">Full Semester</SelectItem>
+                <SelectItem value="first_half">1st Half</SelectItem>
+                <SelectItem value="second_half">2nd Half</SelectItem>
+                <SelectItem value="alternate">Alternate</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Toggles */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="selected-only"
+              checked={showSelectedOnly}
+              onCheckedChange={setShowSelectedOnly}
+            />
+            <Label htmlFor="selected-only" className="text-sm">
+              Selected Only
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="hide-conflicts"
+              checked={hideConflicts}
+              onCheckedChange={setHideConflicts}
+            />
+            <Label htmlFor="hide-conflicts" className="text-sm flex items-center gap-1">
+              <EyeOff className="h-3 w-3" />
+              Hide Conflicts
+            </Label>
+          </div>
         </div>
       </div>
 
@@ -177,7 +316,7 @@ export function CourseFinder({
           <div className="divide-y divide-border">
             {filteredCourses.map((course) => {
               const isSelected = selectedCourseIds.has(course.id);
-              const isAltSchedule = isAlternateSchedule(course);
+              const durationType = getDurationType(course);
 
               // Format time display
               const formatTime = (time: string | null) => {
@@ -197,21 +336,19 @@ export function CourseFinder({
                   <div className="flex w-full justify-between items-center gap-2">
                     {/* Text Container - must have min-w-0 for truncation to work */}
                     <div className="flex-1 min-w-0 overflow-hidden">
-                      {/* Line 1: Course Name + Section */}
-                      <div className="flex items-center gap-1 min-w-0">
+                      {/* Line 1: Course Name + Section + Badge */}
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <h3 className="font-medium text-sm truncate">
                           {course.course_name}
                           {course.section && (
-                            <span className="text-muted-foreground ml-1">
-                              ({course.section})
+                            <span className="text-muted-foreground font-normal ml-1">
+                              (Section: {course.section})
                             </span>
                           )}
                         </h3>
-                        {isAltSchedule && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0">
-                            Alt
-                          </span>
-                        )}
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${getDurationBadgeClass(durationType)}`}>
+                          {DURATION_TYPE_LABELS[durationType]}
+                        </span>
                       </div>
                       {/* Line 2: Credits + Meeting Days + Time */}
                       <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground truncate">

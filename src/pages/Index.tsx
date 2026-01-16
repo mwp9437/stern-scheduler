@@ -10,7 +10,7 @@ import { AuthModal } from "@/components/scheduler/AuthModal";
 import { useCourses, getUniqueSubjects } from "@/hooks/useCourses";
 import { useUserSchedule } from "@/hooks/useUserSchedule";
 import { useAuth } from "@/hooks/useAuth";
-import { ScheduleStats, TimeSlotFilter, CalendarEvent } from "@/types/scheduler";
+import { ScheduleStats, TimeSlotFilter, CalendarEvent, CustomEventType } from "@/types/scheduler";
 import { getDay, getHours, getMinutes } from "date-fns";
 
 const Index = () => {
@@ -86,9 +86,9 @@ const Index = () => {
     updateCustomEvent({ id: eventId, start, end });
   }, [updateCustomEvent]);
 
-  // Handle update from modal
-  const handleUpdateEvent = useCallback((eventId: string, start: Date, end: Date) => {
-    updateCustomEvent({ id: eventId, start, end });
+  // Handle update from modal (including type change)
+  const handleUpdateEvent = useCallback((eventId: string, start: Date, end: Date, eventType?: CustomEventType) => {
+    updateCustomEvent({ id: eventId, start, end, eventType });
   }, [updateCustomEvent]);
 
   // Handle delete from modal
@@ -116,10 +116,10 @@ const Index = () => {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Calendar + Alternate Table Column */}
-        <div className={`flex flex-col overflow-auto ${courseFinderCollapsed ? "flex-1" : "w-[70%]"}`}>
-          {/* Calendar */}
-          <div className="p-4 flex-shrink-0">
+        {/* Calendar + Alternate Table Column - Dynamic Height */}
+        <div className={`flex flex-col h-[calc(100vh-140px)] ${courseFinderCollapsed ? "flex-1" : "w-[70%]"}`}>
+          {/* Calendar - flex-grow to fill available space */}
+          <div className="p-4 flex-grow min-h-0">
             <ScheduleCalendar
               courses={courses}
               selectedCourseIds={selectedCourseIds}
@@ -135,8 +135,11 @@ const Index = () => {
           
           {/* Alternate Schedule Table - only if there are alternate courses */}
           {hasAlternateSchedules && (
-            <div className="px-4 pb-4 flex-shrink-0">
-              <AlternateSchedulesTable courses={alternateScheduleCourses} />
+            <div className="px-4 pb-4 flex-shrink-0 max-h-[250px] overflow-auto">
+              <AlternateSchedulesTable 
+                courses={alternateScheduleCourses} 
+                defaultOpen={true}
+              />
             </div>
           )}
         </div>
@@ -159,6 +162,7 @@ const Index = () => {
             onToggleCollapse={() => setCourseFinderCollapsed(!courseFinderCollapsed)}
             timeSlotFilter={timeSlotFilter}
             onClearTimeFilter={handleClearTimeFilter}
+            customEvents={customEvents}
           />
         </div>
       </div>
