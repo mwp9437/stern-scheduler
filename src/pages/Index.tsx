@@ -135,7 +135,7 @@ const Index = () => {
           
           {/* Alternate Schedule Table - only if there are alternate courses */}
           {hasAlternateSchedules && (
-            <div className="px-4 pb-4 flex-shrink-0 max-h-[250px] overflow-auto">
+            <div className="px-4 pb-10 flex-shrink-0 max-h-[300px] overflow-auto">
               <AlternateSchedulesTable 
                 courses={alternateScheduleCourses} 
                 defaultOpen={true}
