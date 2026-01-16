@@ -33,39 +33,39 @@ export function AlternateSchedulesTable({ courses, defaultOpen = true }: Alterna
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="border border-border bg-card rounded-lg overflow-hidden">
         <CollapsibleTrigger asChild>
-          <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors">
-            <h2 className="text-sm font-semibold">
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors">
+            <h2 className="text-xs font-semibold">
               Alternate Schedule Courses ({courses.length})
             </h2>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
               {isOpen ? (
-                <ChevronUp className="h-4 w-4" />
+                <ChevronUp className="h-3 w-3" />
               ) : (
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3 w-3" />
               )}
             </Button>
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <ScrollArea className="max-h-[200px]">
+          <ScrollArea className="max-h-[220px]">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
-                  <TableHead className="py-1.5 text-xs">Course Name</TableHead>
-                  <TableHead className="py-1.5 text-xs">Section</TableHead>
-                  <TableHead className="py-1.5 text-xs">Instructor</TableHead>
-                  <TableHead className="py-1.5 text-xs">Meeting Times</TableHead>
-                  <TableHead className="py-1.5 text-xs">Dates</TableHead>
+                  <TableHead className="py-1 text-[11px]">Course Name</TableHead>
+                  <TableHead className="py-1 text-[11px]">Section</TableHead>
+                  <TableHead className="py-1 text-[11px]">Instructor</TableHead>
+                  <TableHead className="py-1 text-[11px]">Meeting Times</TableHead>
+                  <TableHead className="py-1 text-[11px]">Dates</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {courses.map((course) => (
                   <TableRow key={course.id}>
-                    <TableCell className="py-1.5 text-xs font-medium">{course.course_name}</TableCell>
-                    <TableCell className="py-1.5 text-xs">{course.section}</TableCell>
-                    <TableCell className="py-1.5 text-xs">{course.instructor}</TableCell>
-                    <TableCell className="py-1.5 text-xs">{course.meeting_times_full}</TableCell>
-                    <TableCell className="py-1.5 text-xs">{course.dates_full}</TableCell>
+                    <TableCell className="py-1 text-[11px] font-medium">{course.course_name}</TableCell>
+                    <TableCell className="py-1 text-[11px]">{course.section}</TableCell>
+                    <TableCell className="py-1 text-[11px]">{course.instructor}</TableCell>
+                    <TableCell className="py-1 text-[11px]">{course.meeting_times_full}</TableCell>
+                    <TableCell className="py-1 text-[11px]">{course.dates_full}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -177,20 +177,40 @@
   @apply border-t border-border/20;
 }
 
-/* Hover effect for entire time slot cell */
+/* Hover effect for entire time slot cell - FORCE full width and height */
+.rbc-time-content .rbc-time-gutter .rbc-timeslot-group,
+.rbc-day-slot .rbc-timeslot-group .rbc-time-slot {
+  width: 100% !important;
+}
+
 .rbc-day-slot .rbc-timeslot-group {
   @apply transition-colors cursor-pointer;
+  position: relative;
 }
 
 .rbc-day-slot .rbc-timeslot-group:hover {
-  background-color: hsl(var(--muted) / 0.5) !important;
+  background-color: hsl(220 14% 96%) !important;
+}
+
+.dark .rbc-day-slot .rbc-timeslot-group:hover {
+  background-color: hsl(270 20% 20%) !important;
 }
 
 /* Ensure the hover applies to full cell width and height */
 .rbc-day-slot .rbc-time-slot {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Force hover on the entire slot area */
+.rbc-day-slot .rbc-events-container {
+  pointer-events: none;
+}
+
+.rbc-day-slot .rbc-events-container .rbc-event {
+  pointer-events: auto;
 }
 
 .rbc-time-gutter {
