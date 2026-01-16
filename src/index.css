@@ -166,7 +166,7 @@
 
 .rbc-timeslot-group {
   @apply border-b border-border/50;
-  min-height: 28px !important;
+  min-height: 20px !important;
 }
 
 .rbc-time-slot {
@@ -285,7 +285,7 @@
 
 /* Make time gutter labels only show on hour marks */
 .rbc-time-gutter .rbc-timeslot-group {
-  min-height: 28px !important;
+  min-height: 20px !important;
 }
 
 .rbc-time-gutter .rbc-time-slot {
