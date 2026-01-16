@@ -1,56 +1,63 @@
-import { BookOpen, Clock, Briefcase, HelpCircle, LogIn, LogOut } from "lucide-react";
+import { BookOpen, Clock, Briefcase, HelpCircle, LogIn, LogOut, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScheduleStats } from "@/types/scheduler";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import logo from "@/assets/logo.png";
+
 interface HeaderProps {
   stats: ScheduleStats;
   isLoggedIn: boolean;
   onLoginClick: () => void;
   onLogoutClick: () => void;
 }
+
 export function Header({
   stats,
   isLoggedIn,
   onLoginClick,
   onLogoutClick
 }: HeaderProps) {
-  return <header className="border-b border-border bg-card px-6 py-4">
+  return (
+    <header className="border-b border-border bg-card px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Left: Logo + Title */}
         <div className="flex items-center gap-3">
-          <img alt="Stern Scheduler" className="h-10 w-10 object-contain" style={{
-          aspectRatio: "1 / 1"
-        }} src="/lovable-uploads/e287b438-2d2a-4de1-8854-36cfe5fa2caa.png" />
+          <img
+            alt="Stern Scheduler"
+            className="h-10 w-10 object-contain"
+            style={{ aspectRatio: "1 / 1" }}
+            src="/lovable-uploads/e287b438-2d2a-4de1-8854-36cfe5fa2caa.png"
+          />
           <h1 className="text-2xl font-bold text-primary">Stern Scheduler</h1>
         </div>
 
         {/* Center: Stats */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
-            <span className="text-sm font-medium">Total Credits:</span>
+            <span className="text-sm font-medium">Credits:</span>
             <span className="text-lg font-bold text-primary">{stats.totalCredits.toFixed(1)}</span>
           </div>
           
           <div className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-event-internship-foreground" />
-            <span className="text-sm font-medium">Internship Hours:</span>
-            <span className="text-lg font-bold" style={{
-            color: "hsl(var(--event-internship-foreground))"
-          }}>
-              {stats.internshipHours.toFixed(1)}
+            <span className="text-sm font-medium">Internship:</span>
+            <span className="text-lg font-bold" style={{ color: "hsl(var(--event-internship-foreground))" }}>
+              {stats.internshipHours.toFixed(1)}h
             </span>
           </div>
           
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-event-recruiting-foreground" />
-            <span className="text-sm font-medium">Recruiting/Study Hours:</span>
-            <span className="text-lg font-bold" style={{
-            color: "hsl(var(--event-recruiting-foreground))"
-          }}>
-              {stats.recruitingHours.toFixed(1)}
+            <span className="text-sm font-medium">Recruiting:</span>
+            <span className="text-lg font-bold" style={{ color: "hsl(var(--event-recruiting-foreground))" }}>
+              {stats.recruitingHours.toFixed(1)}h
             </span>
+          </div>
+
+          <div className="flex items-center gap-2 border-l border-border pl-6">
+            <Calculator className="h-5 w-5 text-primary" />
+            <span className="text-sm font-medium">Total Load:</span>
+            <span className="text-lg font-bold text-primary">{stats.totalScheduledLoad.toFixed(1)}</span>
           </div>
         </div>
 
@@ -102,14 +109,19 @@ export function Header({
             </DialogContent>
           </Dialog>
 
-          {isLoggedIn ? <Button variant="outline" size="sm" onClick={onLogoutClick}>
+          {isLoggedIn ? (
+            <Button variant="outline" size="sm" onClick={onLogoutClick}>
               <LogOut className="mr-2 h-4 w-4" />
               Logout
-            </Button> : <Button size="sm" onClick={onLoginClick}>
+            </Button>
+          ) : (
+            <Button size="sm" onClick={onLoginClick}>
               <LogIn className="mr-2 h-4 w-4" />
               Login
-            </Button>}
+            </Button>
+          )}
         </div>
       </div>
-    </header>;
+    </header>
+  );
 }

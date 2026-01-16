@@ -23,7 +23,7 @@ interface AddEventModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (event: { title: string; type: CustomEventType; start: Date; end: Date }) => void;
-  onUpdate?: (eventId: string, start: Date, end: Date) => void;
+  onUpdate?: (eventId: string, start: Date, end: Date, eventType?: CustomEventType) => void;
   onDelete?: (eventId: string) => void;
   slotStart: Date | null;
   slotEnd: Date | null;
@@ -125,8 +125,8 @@ export function AddEventModal({
     const end = setMinutes(setHours(baseDate, endH), endM);
 
     if (isEditMode && editingEvent && onUpdate) {
-      // Update existing event
-      onUpdate(editingEvent.id, start, end);
+      // Update existing event (including type if changed)
+      onUpdate(editingEvent.id, start, end, selectedType || undefined);
     } else if (selectedType) {
       // Add new event
       const title = EVENT_TYPE_LABELS[selectedType];
@@ -156,7 +156,7 @@ export function AddEventModal({
   };
 
   const canSubmit = isEditMode 
-    ? (startTime && endTime)
+    ? (startTime && endTime && selectedType)
     : (selectedType && startTime && endTime);
 
   return (
@@ -173,38 +173,26 @@ export function AddEventModal({
             </div>
           )}
 
-          {/* Only show type selector in Add mode */}
-          {!isEditMode && (
-            <div className="space-y-2">
-              <Label>Block Type</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {eventTypes.map((eventType) => (
-                  <button
-                    key={eventType.type}
-                    onClick={() => setSelectedType(eventType.type)}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-                      selectedType === eventType.type
-                        ? `${eventType.colorClass} border-primary`
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    {eventType.icon}
-                    <span className="text-xs font-medium">{eventType.label}</span>
-                  </button>
-                ))}
-              </div>
+          {/* Type selector - always show in both modes */}
+          <div className="space-y-2">
+            <Label>Block Type</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {eventTypes.map((eventType) => (
+                <button
+                  key={eventType.type}
+                  onClick={() => setSelectedType(eventType.type)}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                    selectedType === eventType.type
+                      ? `${eventType.colorClass} border-primary`
+                      : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  {eventType.icon}
+                  <span className="text-xs font-medium">{eventType.label}</span>
+                </button>
+              ))}
             </div>
-          )}
-
-          {/* Show current type in Edit mode */}
-          {isEditMode && editingEvent?.resource.eventType && (
-            <div className="space-y-2">
-              <Label>Block Type</Label>
-              <div className="text-sm font-medium text-foreground">
-                {EVENT_TYPE_LABELS[editingEvent.resource.eventType]}
-              </div>
-            </div>
-          )}
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

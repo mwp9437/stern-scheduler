@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Course, UserSchedule, CustomEventType, ScheduleStats, isAlternateSchedule } from "@/types/scheduler";
+import { Course, UserSchedule, CustomEventType, ScheduleStats, isAlternateSchedule, EVENT_TYPE_LABELS } from "@/types/scheduler";
 import { useToast } from "@/hooks/use-toast";
 import { differenceInMinutes } from "date-fns";
 
@@ -116,21 +116,30 @@ export function useUserSchedule(userId: string | undefined) {
     },
   });
 
-  // Update custom event mutation
+  // Update custom event mutation (supports updating type as well)
   const updateCustomEventMutation = useMutation({
     mutationFn: async (event: {
       id: string;
       start: Date;
       end: Date;
+      eventType?: CustomEventType;
     }) => {
       if (!userId) throw new Error("Not authenticated");
       
+      const updateData: Record<string, unknown> = {
+        start_time: event.start.toISOString(),
+        end_time: event.end.toISOString(),
+      };
+
+      // Update type and title if provided
+      if (event.eventType) {
+        updateData.custom_event_type = event.eventType;
+        updateData.custom_title = EVENT_TYPE_LABELS[event.eventType];
+      }
+      
       const { error } = await supabase
         .from("user_schedules")
-        .update({
-          start_time: event.start.toISOString(),
-          end_time: event.end.toISOString(),
-        })
+        .update(updateData)
         .eq("id", event.id)
         .eq("user_id", userId);
 
@@ -200,8 +209,11 @@ export function useUserSchedule(userId: string | undefined) {
         }
       }
     });
+
+    // Total Scheduled Load = Credits + Internship Hours + Recruiting Hours
+    const totalScheduledLoad = totalCredits + internshipHours + recruitingHours;
     
-    return { totalCredits, internshipHours, recruitingHours };
+    return { totalCredits, internshipHours, recruitingHours, totalScheduledLoad };
   }, [selectedCourseIds, customEvents]);
 
   // Get alternate schedule courses

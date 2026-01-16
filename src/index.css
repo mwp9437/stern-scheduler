@@ -131,12 +131,16 @@
 
 /* React Big Calendar custom styles */
 /* Dynamic calendar height based on whether alternate schedules exist */
+.calendar-container {
+  height: 100%;
+}
+
 .calendar-container.calendar-full {
-  height: calc(100vh - 180px); /* Fill available space when no alt schedules */
+  height: 100%;
 }
 
 .calendar-container.calendar-with-alt {
-  height: 500px; /* Fixed height when alt schedule table is shown */
+  height: 100%;
 }
 
 .rbc-calendar {
