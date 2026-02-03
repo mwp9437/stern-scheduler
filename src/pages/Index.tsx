@@ -7,6 +7,8 @@ import { CourseFinder } from "@/components/scheduler/CourseFinder";
 import { AlternateSchedulesTable } from "@/components/scheduler/AlternateSchedulesTable";
 import { AddEventModal } from "@/components/scheduler/AddEventModal";
 import { AuthModal } from "@/components/scheduler/AuthModal";
+import { FeedbackModal } from "@/components/scheduler/FeedbackModal";
+import { FundraiserModal } from "@/components/scheduler/FundraiserModal";
 import { useCourses, getUniqueSubjects } from "@/hooks/useCourses";
 import { useUserSchedule } from "@/hooks/useUserSchedule";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,6 +31,7 @@ const Index = () => {
 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [courseFinderCollapsed, setCourseFinderCollapsed] = useState(false);
@@ -113,6 +116,7 @@ const Index = () => {
         isLoggedIn={!!user}
         onLoginClick={() => setShowAuthModal(true)}
         onLogoutClick={handleLogout}
+        onFeedbackClick={() => setShowFeedbackModal(true)}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -189,6 +193,13 @@ const Index = () => {
         slotEnd={selectedSlot?.end ?? null}
         editingEvent={editingEvent}
       />
+
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
+
+      <FundraiserModal />
     </div>
   );
 };

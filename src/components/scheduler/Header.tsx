@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Briefcase, HelpCircle, LogIn, LogOut, Calculator } from "lucide-react";
+import { BookOpen, Clock, Briefcase, HelpCircle, LogIn, LogOut, Calculator, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScheduleStats } from "@/types/scheduler";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -8,13 +8,15 @@ interface HeaderProps {
   isLoggedIn: boolean;
   onLoginClick: () => void;
   onLogoutClick: () => void;
+  onFeedbackClick: () => void;
 }
 
 export function Header({
   stats,
   isLoggedIn,
   onLoginClick,
-  onLogoutClick
+  onLogoutClick,
+  onFeedbackClick
 }: HeaderProps) {
   return (
     <header className="border-b border-border bg-card px-6 py-4">
@@ -63,6 +65,10 @@ export function Header({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={onFeedbackClick}>
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Feedback
+          </Button>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
