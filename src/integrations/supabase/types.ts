@@ -40,8 +40,10 @@ export type Database = {
       }
       courses: {
         Row: {
+          catalog: string | null
           class_nbr: string | null
           course_name: string | null
+          course_title: string | null
           created_at: string | null
           credits: number | null
           dates_full: string | null
@@ -50,15 +52,21 @@ export type Database = {
           id: number
           instructor: string | null
           meeting_days: string | null
+          meeting_patterns: Json | null
           meeting_times_full: string | null
+          mode: string | null
           notes: string | null
           section: string | null
+          session_code: string | null
           start_time: string | null
           subject: string | null
+          term_code: string | null
         }
         Insert: {
+          catalog?: string | null
           class_nbr?: string | null
           course_name?: string | null
+          course_title?: string | null
           created_at?: string | null
           credits?: number | null
           dates_full?: string | null
@@ -67,15 +75,21 @@ export type Database = {
           id?: number
           instructor?: string | null
           meeting_days?: string | null
+          meeting_patterns?: Json | null
           meeting_times_full?: string | null
+          mode?: string | null
           notes?: string | null
           section?: string | null
+          session_code?: string | null
           start_time?: string | null
           subject?: string | null
+          term_code?: string | null
         }
         Update: {
+          catalog?: string | null
           class_nbr?: string | null
           course_name?: string | null
+          course_title?: string | null
           created_at?: string | null
           credits?: number | null
           dates_full?: string | null
@@ -84,11 +98,15 @@ export type Database = {
           id?: number
           instructor?: string | null
           meeting_days?: string | null
+          meeting_patterns?: Json | null
           meeting_times_full?: string | null
+          mode?: string | null
           notes?: string | null
           section?: string | null
+          session_code?: string | null
           start_time?: string | null
           subject?: string | null
+          term_code?: string | null
         }
         Relationships: []
       }

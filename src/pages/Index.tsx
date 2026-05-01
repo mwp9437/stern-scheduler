@@ -4,7 +4,7 @@ import { Header } from "@/components/scheduler/Header";
 import { Footer } from "@/components/scheduler/Footer";
 import { ScheduleCalendar } from "@/components/scheduler/ScheduleCalendar";
 import { CourseFinder } from "@/components/scheduler/CourseFinder";
-import { AlternateSchedulesTable } from "@/components/scheduler/AlternateSchedulesTable";
+import { OffCalendarCoursesTable } from "@/components/scheduler/OffCalendarCoursesTable";
 import { AddEventModal } from "@/components/scheduler/AddEventModal";
 import { AuthModal } from "@/components/scheduler/AuthModal";
 import { FeedbackModal } from "@/components/scheduler/FeedbackModal";
@@ -26,7 +26,7 @@ const Index = () => {
     updateCustomEvent,
     removeCustomEvent,
     calculateStats,
-    getAlternateScheduleCourses,
+    getOffCalendarCourses,
   } = useUserSchedule(user?.id);
 
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -39,7 +39,7 @@ const Index = () => {
 
   const subjects = useMemo(() => getUniqueSubjects(courses), [courses]);
   const stats: ScheduleStats = useMemo(() => calculateStats(courses), [calculateStats, courses]);
-  const alternateScheduleCourses = useMemo(() => getAlternateScheduleCourses(courses), [getAlternateScheduleCourses, courses]);
+  const offCalendarCourses = useMemo(() => getOffCalendarCourses(courses), [getOffCalendarCourses, courses]);
 
   // Auto-close auth modal when user logs in
   useEffect(() => {
@@ -107,7 +107,7 @@ const Index = () => {
     await signOut();
   };
 
-  const hasAlternateSchedules = alternateScheduleCourses.length > 0;
+  const hasOffCalendarCourses = offCalendarCourses.length > 0;
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -133,15 +133,15 @@ const Index = () => {
               onEventSelect={handleEventSelect}
               onEventDrop={handleEventDrop}
               onEventResize={handleEventResize}
-              hasAlternateSchedules={hasAlternateSchedules}
+              hasOffCalendarCourses={hasOffCalendarCourses}
             />
           </div>
-          
-          {/* Alternate Schedule Table - only if there are alternate courses */}
-          {hasAlternateSchedules && (
+
+          {/* Off-Calendar Courses Table — only if any are selected */}
+          {hasOffCalendarCourses && (
             <div className="px-4 pb-4 pt-1 shrink-0">
-              <AlternateSchedulesTable 
-                courses={alternateScheduleCourses} 
+              <OffCalendarCoursesTable
+                courses={offCalendarCourses}
                 defaultOpen={true}
               />
             </div>

@@ -5,13 +5,14 @@ import { format, parse, startOfWeek, getDay, setHours, setMinutes, addDays, star
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import { 
-  Course, 
-  CalendarEvent, 
-  CustomEventType, 
-  parseMeetingDays, 
-  parseTime, 
-  isAlternateSchedule,
+import {
+  Course,
+  CalendarEvent,
+  CustomEventType,
+  MeetingPattern,
+  parseMeetingDays,
+  parseTime,
+  isCalendarVisible,
   isHalfSemester,
   EVENT_TYPE_LABELS
 } from "@/types/scheduler";
@@ -57,7 +58,7 @@ interface ScheduleCalendarProps {
   onEventSelect?: (event: CalendarEvent) => void;
   onEventDrop?: (eventId: string, start: Date, end: Date) => void;
   onEventResize?: (eventId: string, start: Date, end: Date) => void;
-  hasAlternateSchedules?: boolean;
+  hasOffCalendarCourses?: boolean;
 }
 
 export function ScheduleCalendar({
@@ -69,7 +70,7 @@ export function ScheduleCalendar({
   onEventSelect,
   onEventDrop,
   onEventResize,
-  hasAlternateSchedules = false,
+  hasOffCalendarCourses = false,
 }: ScheduleCalendarProps) {
   // Get a fixed week's Monday (use a constant date to avoid "today" highlighting)
   const weekStart = useMemo(() => {
@@ -82,9 +83,19 @@ export function ScheduleCalendar({
   const events = useMemo((): CalendarEvent[] => {
     const calendarEvents: CalendarEvent[] = [];
 
-    // Add course events
+    // Add course events. Render only the *primary* (longest) in-person meeting
+    // pattern from the flat columns — the ingest already picks the longest pattern.
+    // Short auxiliary patterns (intro weeks, one-off make-up sessions) live in
+    // `notes` for users who want the full picture; rendering them as separate
+    // calendar blocks turned out to be more confusing than useful.
+    const showRangeFor = (course: Course): boolean => {
+      if (isHalfSemester(course)) return true;
+      const raw = course.meeting_patterns as MeetingPattern[] | null | undefined;
+      return Array.isArray(raw) && raw.length > 1;
+    };
+
     courses
-      .filter((course) => selectedCourseIds.has(course.id) && !isAlternateSchedule(course))
+      .filter((course) => selectedCourseIds.has(course.id) && isCalendarVisible(course))
       .forEach((course) => {
         const days = parseMeetingDays(course.meeting_days);
         const startTime = parseTime(course.start_time);
@@ -92,10 +103,11 @@ export function ScheduleCalendar({
 
         if (days.length === 0 || !startTime || !endTime) return;
 
+        const showRange = showRangeFor(course);
+
         days.forEach((dayIndex) => {
-          // Calculate the date for this day of the week (Mon=1, Tue=2, etc.)
           const eventDate = addDays(weekStart, dayIndex - 1);
-          
+
           const start = setMinutes(setHours(eventDate, startTime.hours), startTime.minutes);
           const end = setMinutes(setHours(eventDate, endTime.hours), endTime.minutes);
 
@@ -108,7 +120,7 @@ export function ScheduleCalendar({
               type: "course",
               course,
               instructor: course.instructor ?? undefined,
-              datesInfo: isHalfSemester(course) ? course.dates_full ?? undefined : undefined,
+              datesInfo: showRange ? course.dates_full ?? undefined : undefined,
               isHalfSemester: isHalfSemester(course),
             },
           });
@@ -259,8 +271,8 @@ export function ScheduleCalendar({
     };
   }, []);
 
-  // Dynamic height based on alternate schedules
-  const containerClass = hasAlternateSchedules
+  // Dynamic height: shrink when off-calendar courses are listed below.
+  const containerClass = hasOffCalendarCourses
     ? "calendar-container calendar-with-alt"
     : "calendar-container calendar-full";
 

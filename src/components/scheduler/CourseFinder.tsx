@@ -18,10 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Course, 
-  isAlternateSchedule, 
-  TimeSlotFilter, 
+import {
+  Course,
+  TimeSlotFilter,
   courseMeetsAtTime,
   getDurationType,
   DURATION_TYPE_LABELS,
@@ -179,8 +178,11 @@ export function CourseFinder({
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
       case "second_half":
         return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300";
-      case "alternate":
+      case "intensive":
         return "bg-muted text-muted-foreground";
+      case "dbi":
+        return "bg-violet-200 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200";
+      case "full":
       default:
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
     }
@@ -322,7 +324,8 @@ export function CourseFinder({
                     <SelectItem value="full">Full Semester</SelectItem>
                     <SelectItem value="first_half">1st Half</SelectItem>
                     <SelectItem value="second_half">2nd Half</SelectItem>
-                    <SelectItem value="alternate">Alternate</SelectItem>
+                    <SelectItem value="intensive">Intensive</SelectItem>
+                    <SelectItem value="dbi">DBi</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -429,6 +432,10 @@ export function CourseFinder({
                         <>1st<br/>Half</>
                       ) : durationType === "second_half" ? (
                         <>2nd<br/>Half</>
+                      ) : durationType === "intensive" ? (
+                        "Int"
+                      ) : durationType === "dbi" ? (
+                        "DBi"
                       ) : (
                         DURATION_TYPE_LABELS[durationType]
                       )}

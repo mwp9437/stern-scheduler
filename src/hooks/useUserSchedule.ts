@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Course, UserSchedule, CustomEventType, ScheduleStats, isAlternateSchedule, EVENT_TYPE_LABELS } from "@/types/scheduler";
+import { Course, UserSchedule, CustomEventType, ScheduleStats, isOffCalendar, EVENT_TYPE_LABELS } from "@/types/scheduler";
 import { useToast } from "@/hooks/use-toast";
 import { differenceInMinutes } from "date-fns";
 
@@ -216,9 +216,11 @@ export function useUserSchedule(userId: string | undefined) {
     return { totalCredits, internshipHours, recruitingHours, totalScheduledLoad };
   }, [selectedCourseIds, customEvents]);
 
-  // Get alternate schedule courses
-  const getAlternateScheduleCourses = useCallback((courses: Course[]) => {
-    return courses.filter((c) => selectedCourseIds.has(c.id) && isAlternateSchedule(c));
+  // Off-calendar courses: Intensive (INS/INW) + DBi (XTL). These don't
+  // render on the weekly grid because their schedule isn't a recurring
+  // weekly pattern; they appear in the OffCalendarCoursesTable instead.
+  const getOffCalendarCourses = useCallback((courses: Course[]) => {
+    return courses.filter((c) => selectedCourseIds.has(c.id) && isOffCalendar(c));
   }, [selectedCourseIds]);
 
   return {
@@ -231,6 +233,6 @@ export function useUserSchedule(userId: string | undefined) {
     updateCustomEvent: updateCustomEventMutation.mutate,
     removeCustomEvent: removeCustomEventMutation.mutate,
     calculateStats,
-    getAlternateScheduleCourses,
+    getOffCalendarCourses,
   };
 }
