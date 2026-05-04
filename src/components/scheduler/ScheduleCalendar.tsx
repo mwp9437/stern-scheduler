@@ -3,6 +3,7 @@ import { Calendar, dateFnsLocalizer, SlotInfo } from "react-big-calendar";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import { format, parse, startOfWeek, getDay, setHours, setMinutes, addDays, startOfDay } from "date-fns";
 import { enUS } from "date-fns/locale";
+import { ExternalLink } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import {
@@ -170,9 +171,24 @@ export function ScheduleCalendar({
   // Custom event component
   const EventComponent = useCallback(({ event }: { event: CalendarEvent }) => {
     if (event.resource.type === "course") {
+      const syllabusUrl = event.resource.course?.syllabus_url;
       return (
-        <div className="text-xs leading-tight">
-          <div className="font-bold truncate">{event.title}</div>
+        <div className="text-xs leading-tight relative">
+          {syllabusUrl && (
+            <a
+              href={syllabusUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="absolute top-0 right-0 opacity-70 hover:opacity-100"
+              title="Open syllabus (NYU login required)"
+              aria-label="Open syllabus"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+          <div className={`font-bold truncate ${syllabusUrl ? "pr-3.5" : ""}`}>{event.title}</div>
           {event.resource.instructor && (
             <div className="truncate opacity-80">{event.resource.instructor}</div>
           )}

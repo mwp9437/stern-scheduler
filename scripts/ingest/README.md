@@ -60,6 +60,32 @@ SELECT class_nbr, course_title, duration_type, meeting_days,
 FROM public.courses WHERE class_nbr = '3155';
 ```
 
+## Syllabus links (`syllabus_links.py`)
+
+Populates `courses.syllabus_url` from a snapshot of the Stern syllabilist
+page (`https://web-apps-shib.stern.nyu.edu/syllabi/syllabilist/g/<term>`).
+The page is Shibboleth-protected and can't be fetched server-side, so the
+ingest reads a saved HTML file.
+
+```bash
+# 1. In your browser (logged into NYU), visit the syllabilist URL.
+# 2. File -> Save Page As -> scripts/ingest/data/fa26_syllabi.html
+#    (the data/ dir is gitignored)
+
+# Dry run — parse + summarize, no writes:
+python syllabus_links.py --dry-run
+
+# Direct PATCH (idempotent, safe to re-run):
+python syllabus_links.py
+
+# Emit SQL instead of writing:
+python syllabus_links.py --sql-out _fa26_syllabus_links.sql
+```
+
+Match key is `(subject, catalog, section)`. Rows on the syllabilist page
+that don't match a course in the DB (dropped sections, etc.) are reported
+but not fatal.
+
 ## For Spring 2027
 
 1. Copy this directory to `scripts/ingest/spring_2027.py`.
