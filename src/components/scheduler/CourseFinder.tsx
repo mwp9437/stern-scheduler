@@ -450,7 +450,7 @@ export function CourseFinder({
                         <a
                           href={course.syllabus_url}
                           target="_blank"
-                          rel="noopener noreferrer"
+                          rel="noopener"
                           onClick={(e) => e.stopPropagation()}
                           className="text-muted-foreground hover:text-foreground flex-shrink-0"
                           title="Open syllabus (NYU login required)"

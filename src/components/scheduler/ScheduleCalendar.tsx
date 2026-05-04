@@ -178,7 +178,7 @@ export function ScheduleCalendar({
             <a
               href={syllabusUrl}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener"
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
               className="absolute top-0 right-0 opacity-70 hover:opacity-100"
