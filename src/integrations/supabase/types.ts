@@ -60,6 +60,7 @@ export type Database = {
           session_code: string | null
           start_time: string | null
           subject: string | null
+          syllabus_url: string | null
           term_code: string | null
         }
         Insert: {
@@ -83,6 +84,7 @@ export type Database = {
           session_code?: string | null
           start_time?: string | null
           subject?: string | null
+          syllabus_url?: string | null
           term_code?: string | null
         }
         Update: {
@@ -106,6 +108,7 @@ export type Database = {
           session_code?: string | null
           start_time?: string | null
           subject?: string | null
+          syllabus_url?: string | null
           term_code?: string | null
         }
         Relationships: []

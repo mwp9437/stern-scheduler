@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, Filter, Plus, Minus, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Search, Filter, Plus, Minus, ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -444,7 +444,22 @@ export function CourseFinder({
 
                   {/* RIGHT COLUMN: Course Info (Takes remaining space) */}
                   <div className="flex-1 min-w-0 overflow-hidden">
-                    <h3 className="font-medium text-sm truncate">{course.course_name}</h3>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-medium text-sm truncate">{course.course_name}</h3>
+                      {course.syllabus_url && (
+                        <a
+                          href={course.syllabus_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-muted-foreground hover:text-foreground flex-shrink-0"
+                          title="Open syllabus (NYU login required)"
+                          aria-label="Open syllabus"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
                     {course.section && (
                       <p className="text-xs text-muted-foreground truncate mb-1">
                         (Section: {course.section})
