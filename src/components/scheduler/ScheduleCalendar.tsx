@@ -4,6 +4,11 @@ import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import { format, parse, startOfWeek, getDay, setHours, setMinutes, addDays, startOfDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { ExternalLink } from "lucide-react";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import {
@@ -172,7 +177,8 @@ export function ScheduleCalendar({
   const EventComponent = useCallback(({ event }: { event: CalendarEvent }) => {
     if (event.resource.type === "course") {
       const syllabusUrl = event.resource.course?.syllabus_url;
-      return (
+      const description = event.resource.course?.description;
+      const inner = (
         <div className="text-xs leading-tight relative">
           {syllabusUrl && (
             <a
@@ -198,6 +204,20 @@ export function ScheduleCalendar({
             </div>
           )}
         </div>
+      );
+      if (!description) return inner;
+      return (
+        <HoverCard openDelay={200} closeDelay={50}>
+          <HoverCardTrigger asChild>{inner}</HoverCardTrigger>
+          <HoverCardContent
+            side="right"
+            align="start"
+            className="w-96 max-h-96 overflow-y-auto text-xs leading-relaxed"
+          >
+            <div className="font-semibold text-sm mb-1.5">{event.title}</div>
+            <div>{description}</div>
+          </HoverCardContent>
+        </HoverCard>
       );
     }
 

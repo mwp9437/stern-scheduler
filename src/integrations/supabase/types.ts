@@ -47,6 +47,7 @@ export type Database = {
           created_at: string | null
           credits: number | null
           dates_full: string | null
+          description: string | null
           duration_type: string | null
           end_time: string | null
           id: number
@@ -71,6 +72,7 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           dates_full?: string | null
+          description?: string | null
           duration_type?: string | null
           end_time?: string | null
           id?: number
@@ -95,6 +97,7 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           dates_full?: string | null
+          description?: string | null
           duration_type?: string | null
           end_time?: string | null
           id?: number

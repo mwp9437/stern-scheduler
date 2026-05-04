@@ -12,6 +12,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -445,7 +450,25 @@ export function CourseFinder({
                   {/* RIGHT COLUMN: Course Info (Takes remaining space) */}
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex items-center gap-1.5">
-                      <h3 className="font-medium text-sm truncate">{course.course_name}</h3>
+                      {course.description ? (
+                        <HoverCard openDelay={150} closeDelay={50}>
+                          <HoverCardTrigger asChild>
+                            <h3 className="font-medium text-sm truncate cursor-help">
+                              {course.course_name}
+                            </h3>
+                          </HoverCardTrigger>
+                          <HoverCardContent
+                            side="right"
+                            align="start"
+                            className="w-96 max-h-96 overflow-y-auto text-xs leading-relaxed"
+                          >
+                            <div className="font-semibold text-sm mb-1.5">{course.course_name}</div>
+                            <div>{course.description}</div>
+                          </HoverCardContent>
+                        </HoverCard>
+                      ) : (
+                        <h3 className="font-medium text-sm truncate">{course.course_name}</h3>
+                      )}
                       {course.syllabus_url && (
                         <a
                           href={course.syllabus_url}
