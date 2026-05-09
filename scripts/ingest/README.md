@@ -86,17 +86,52 @@ Match key is `(subject, catalog, section)`. Rows on the syllabilist page
 that don't match a course in the DB (dropped sections, etc.) are reported
 but not fatal.
 
+## Course descriptions (`course_descriptions.py`)
+
+Populates `courses.description` from a markdown export of Stern's catalog
+descriptions. The source markdown has one entry per course in the form:
+
+```
+COR1-GB.1102 Leadership (1.5)
+Course Description: <prose, possibly multi-line>
+[Pre-requisites:
+<optional prose>]
+Back to Top<Department Name>
+```
+
+Match key is `(subject, catalog)` — every section of a course gets the same
+description. The frontend renders descriptions in a hover card on
+calendar blocks and Course Finder rows.
+
+```bash
+# Save the catalog markdown to scripts/ingest/data/course_descriptions.md
+# (the data/ dir is gitignored).
+
+# Dry run — parse + summarize, no writes:
+python course_descriptions.py --dry-run
+
+# Direct PATCH (idempotent, safe to re-run):
+python course_descriptions.py
+
+# Emit SQL instead of writing:
+python course_descriptions.py --sql-out _course_descriptions.sql
+
+# Override the source path:
+python course_descriptions.py --md /path/to/file.md
+```
+
 ## For Spring 2027
 
-1. Copy this directory to `scripts/ingest/spring_2027.py`.
-2. Update the default xlsx path and the script docstring.
-3. Inspect any **new Session codes** in the source file:
+1. **Catalog ingest**: copy `fall_2026.py` to `scripts/ingest/spring_2027.py`. Update the default xlsx path and the script docstring.
+2. Inspect any **new Session codes** in the source file:
    ```python
    # Run with --dry-run first; the script will fail loudly on unknown Session.
    ```
-4. Add new codes to `SESSION_TO_DURATION` in the script if needed.
-5. Verify `RANGE_PAT_EXPANSION` covers any new range patterns (`M-S`, `M-U`, etc.).
-6. Run with `--dry-run`, then `--sql-out` to review, then for real.
+3. Add new codes to `SESSION_TO_DURATION` in the script if needed.
+4. Verify `RANGE_PAT_EXPANSION` covers any new range patterns (`M-S`, `M-U`, etc.).
+5. Run with `--dry-run`, then `--sql-out` to review, then for real.
+6. **Syllabus links**: save the new term's syllabilist HTML to `scripts/ingest/data/sp27_syllabi.html` and run `python syllabus_links.py`.
+7. **Course descriptions**: save the new term's catalog markdown to `scripts/ingest/data/course_descriptions.md` and run `python course_descriptions.py`. (Most descriptions are stable across terms — only diff against the previous file if you want to skip unchanged courses.)
 
 ## Why one row per Class Nbr (and JSONB for the rest)
 
