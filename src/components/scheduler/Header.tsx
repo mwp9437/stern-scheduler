@@ -1,9 +1,35 @@
 import { ReactNode } from "react";
-import { BookOpen, Clock, Briefcase, HelpCircle, LogIn, LogOut, Calculator, MessageSquare } from "lucide-react";
+import {
+  BarChart3,
+  BookOpen,
+  Briefcase,
+  CalendarRange,
+  ChevronDown,
+  Clock,
+  ExternalLink,
+  HelpCircle,
+  Layers,
+  LogIn,
+  LogOut,
+  MessageSquare,
+  MousePointerClick,
+  Plus,
+  Search,
+  Sparkles,
+  User,
+  Calculator,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScheduleStats } from "@/types/scheduler";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface HeaderProps {
   stats: ScheduleStats;
@@ -86,78 +112,122 @@ export function Header({
                 User Guide
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>How to Use Stern Scheduler</DialogTitle>
+            <DialogContent className="max-w-3xl max-h-[88vh] overflow-y-auto">
+              <DialogHeader className="space-y-1">
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  How to Use Stern Scheduler
+                </DialogTitle>
+                <DialogDescription>
+                  Build, swap, and stress-test your semester schedule on a single calendar.
+                </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 text-sm">
-                <div>
-                  <h4 className="font-semibold mb-1">1. Find courses</h4>
-                  <p className="text-muted-foreground mb-1">
-                    a. Search by course name or professor in the right panel; filter by subject, credits, duration, or meeting time.
-                  </p>
-                  <p className="text-muted-foreground mb-1">
-                    b. <strong>Click any time slot</strong> on the calendar to filter the right panel to courses meeting at that day/time.
-                  </p>
-                  <p className="text-muted-foreground mb-1">
-                    c. <strong>Hover</strong> a course title for the full catalog description; click the link icon for the syllabus (NYU login required).
-                  </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                {/* Card 1: Find courses */}
+                <div className="rounded-lg border border-border bg-card p-4 space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <Search className="h-4 w-4" />
+                    </div>
+                    <h4 className="font-semibold text-sm">Find courses</h4>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
+                    <li>Search by name or instructor; filter by subject, credits, duration, or meeting time.</li>
+                    <li><strong className="text-foreground">Click any slot</strong> on the calendar to filter the right panel to courses meeting at that time.</li>
+                    <li><strong className="text-foreground">Hover</strong> a course title for the catalog description; click <ExternalLink className="inline h-3 w-3 -mt-0.5" /> for the syllabus.</li>
+                  </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold mb-1">2. Add a course to your schedule</h4>
-                  <p className="text-muted-foreground mb-1">
-                    a. Click the <strong>+</strong> button on any course in the right panel.
-                  </p>
-                  <p className="text-muted-foreground mb-1">
-                    b. Or <strong>double-click an empty slot</strong> and switch to the <strong>"Pick a Course"</strong> tab to choose from courses that meet at that time.
-                  </p>
+                {/* Card 2: Add a course */}
+                <div className="rounded-lg border border-border bg-card p-4 space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <Plus className="h-4 w-4" />
+                    </div>
+                    <h4 className="font-semibold text-sm">Add a course</h4>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
+                    <li>Click the <Plus className="inline h-3 w-3 -mt-0.5 mx-0.5" /> button on any course in the right panel.</li>
+                    <li>Or <strong className="text-foreground">double-click an empty slot</strong> and switch to the <span className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">Pick a Course</span> tab.</li>
+                  </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold mb-1">3. Manage a course on the calendar</h4>
-                  <p className="text-muted-foreground mb-1">
-                    Click any course block to open its details. From there you can <strong>remove it</strong> or <strong>swap to another section</strong> of the same course in one click. Conflicting sections are flagged with a red badge.
-                  </p>
+                {/* Card 3: Manage on calendar */}
+                <div className="rounded-lg border border-border bg-card p-4 space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <MousePointerClick className="h-4 w-4" />
+                    </div>
+                    <h4 className="font-semibold text-sm">Manage on the calendar</h4>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
+                    <li><strong className="text-foreground">Click a course block</strong> to see details, swap sections, or browse other courses at the same time.</li>
+                    <li><strong className="text-foreground">Click a custom block</strong> to edit or delete it; drag or resize to adjust.</li>
+                    <li>Conflicting options are flagged with a red <span className="inline-flex items-center rounded bg-destructive/15 text-destructive px-1.5 py-0 text-[10px] font-medium">Conflict</span> badge.</li>
+                  </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold mb-1">4. Custom blocks (internship, recruiting, personal)</h4>
-                  <p className="text-muted-foreground mb-1">
-                    a. Double-click an empty slot. Pick the block type, the day chips (M T W R F Sa Su — <strong>select multiple at once</strong>), and start/end time.
-                  </p>
-                  <p className="text-muted-foreground mb-1">
-                    b. "Study MWF 2-4pm" is one submit, three blocks.
-                  </p>
-                  <p className="text-muted-foreground mb-1">
-                    c. <strong>Drag or resize</strong> a block on the calendar; <strong>click it</strong> to edit type, time, or delete.
-                  </p>
+                {/* Card 4: Custom blocks */}
+                <div className="rounded-lg border border-border bg-card p-4 space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <CalendarRange className="h-4 w-4" />
+                    </div>
+                    <h4 className="font-semibold text-sm">Custom blocks</h4>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px]">
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-event-internship text-event-internship-foreground">
+                      <Briefcase className="h-3 w-3" /> Internship
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-event-recruiting text-event-recruiting-foreground">
+                      <BookOpen className="h-3 w-3" /> Recruiting
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-event-personal text-event-personal-foreground">
+                      <User className="h-3 w-3" /> Personal
+                    </span>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
+                    <li><strong className="text-foreground">Double-click an empty slot</strong>, pick the type and day chips (M T W R F Sa Su — multiple OK).</li>
+                    <li>"Study MWF 2-4pm" is <strong className="text-foreground">one submit, three blocks</strong>.</li>
+                  </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold mb-1">5. Multiple scenarios (Plan A / Plan B)</h4>
-                  <p className="text-muted-foreground mb-1">
-                    Use the <strong>scenario switcher</strong> next to the logo (visible when logged in) to keep parallel drafts.
-                  </p>
-                  <p className="text-muted-foreground mb-1">
-                    Create new scenarios, <strong>duplicate</strong> the current one to branch off, rename, or delete. Each scenario has its own courses and custom blocks — switch at any time to compare.
-                  </p>
+                {/* Card 5: Plan A / Plan B */}
+                <div className="rounded-lg border border-border bg-card p-4 space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <Layers className="h-4 w-4" />
+                    </div>
+                    <h4 className="font-semibold text-sm">Plan A / Plan B</h4>
+                  </div>
+                  <div className="inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-xs">
+                    Plan A <ChevronDown className="h-3 w-3" />
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
+                    <li>Use the switcher next to the logo (logged in) to keep parallel schedule drafts.</li>
+                    <li><strong className="text-foreground">Duplicate</strong> the current scenario to branch off, then tweak it; <strong className="text-foreground">switch</strong> any time to compare.</li>
+                  </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold mb-1">6. Stats and off-calendar courses</h4>
-                  <p className="text-muted-foreground mb-1">
-                    The header tracks total credits, internship hours, recruiting hours, and total scheduled load — all updating live as you add or swap.
-                  </p>
-                  <p className="text-muted-foreground mb-1">
-                    Intensive (INS/INW) and DBi (XTL) courses don't recur weekly; selected ones appear in the <strong>Off-Calendar Courses</strong> table below the calendar with their actual date range.
-                  </p>
+                {/* Card 6: Stats & off-calendar */}
+                <div className="rounded-lg border border-border bg-card p-4 space-y-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <BarChart3 className="h-4 w-4" />
+                    </div>
+                    <h4 className="font-semibold text-sm">Stats &amp; off-calendar</h4>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
+                    <li>Header tracks credits, internship hrs, recruiting hrs, and total scheduled load — updating live.</li>
+                    <li><strong className="text-foreground">Intensive</strong> (INS/INW) and <strong className="text-foreground">DBi</strong> (XTL) courses don't recur weekly; they appear in the <span className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">Off-Calendar Courses</span> table below the calendar.</li>
+                  </ul>
                 </div>
-
-                <p className="text-muted-foreground text-xs italic pt-2 border-t border-border">
-                  Note: Please double check course schedules and availability in Albert.
-                </p>
               </div>
+
+              <p className="text-muted-foreground text-xs italic pt-3 mt-4 border-t border-border">
+                Note: Please double check course schedules and availability in Albert.
+              </p>
             </DialogContent>
           </Dialog>
 

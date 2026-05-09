@@ -53,6 +53,32 @@ export function CourseDetailModal({
       .sort((a, b) => (a.section ?? "").localeCompare(b.section ?? ""));
   }, [allCourses, course]);
 
+  // Other courses (different subject/catalog) that meet at the EXACT same
+  // days + times as this one. Useful when exploring alternative classes for
+  // a fixed time slot. Off-calendar courses excluded since their schedule
+  // doesn't recur weekly.
+  const sameTimeAlternatives = useMemo(() => {
+    if (!course) return [];
+    if (!course.meeting_days || !course.start_time || !course.end_time) return [];
+    return allCourses
+      .filter((c) => {
+        if (c.id === course.id) return false;
+        // Already shown in the Swap-section panel above.
+        if (c.subject === course.subject && c.catalog === course.catalog) return false;
+        if (!isCalendarVisible(c)) return false;
+        return (
+          c.meeting_days === course.meeting_days &&
+          c.start_time === course.start_time &&
+          c.end_time === course.end_time
+        );
+      })
+      .sort((a, b) => {
+        const aKey = `${a.subject ?? ""} ${a.catalog ?? ""}`;
+        const bKey = `${b.subject ?? ""} ${b.catalog ?? ""}`;
+        return aKey.localeCompare(bKey);
+      });
+  }, [allCourses, course]);
+
   // Detect whether a candidate section would conflict with the user's other
   // selected courses (excluding the one we're swapping FROM) or any custom event.
   const hasConflict = useMemo(() => {
@@ -196,6 +222,68 @@ export function CourseDetailModal({
                             variant="outline"
                             disabled={isAlreadySelected}
                             onClick={() => handleSwap(sibling.id)}
+                            className="h-7 text-xs"
+                          >
+                            <ArrowRightLeft className="mr-1 h-3 w-3" />
+                            {isAlreadySelected ? "Already added" : "Swap"}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-border">
+              <div className="text-xs font-semibold mb-2 text-muted-foreground">
+                Other courses at this time
+                {sameTimeAlternatives.length > 0 && (
+                  <span className="ml-1.5 font-normal">
+                    ({sameTimeAlternatives.length})
+                  </span>
+                )}
+              </div>
+              {sameTimeAlternatives.length === 0 ? (
+                <div className="text-xs text-muted-foreground italic">
+                  No other courses meet on the same days and times.
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {sameTimeAlternatives.map((alt) => {
+                    const conflict = hasConflict(alt);
+                    const isAlreadySelected = selectedCourseIds.has(alt.id);
+                    return (
+                      <div
+                        key={alt.id}
+                        className="flex items-start gap-2 px-2 py-1.5 rounded border border-border hover:bg-muted/50"
+                      >
+                        <div className="flex-1 min-w-0 text-xs">
+                          <div className="font-medium truncate">
+                            {alt.course_title ?? alt.course_name ?? "Untitled"}
+                            <span className="font-normal text-muted-foreground">
+                              {" "}· {alt.subject} {alt.catalog}
+                              {alt.section && <> · Sec {alt.section}</>}
+                            </span>
+                          </div>
+                          <div className="text-muted-foreground truncate">
+                            {alt.instructor ?? "—"}
+                            {alt.credits != null && (
+                              <span> · {alt.credits.toFixed(1)} cr</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {conflict && (
+                            <Badge variant="destructive" className="text-[10px] py-0">
+                              Conflict
+                            </Badge>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isAlreadySelected}
+                            onClick={() => handleSwap(alt.id)}
                             className="h-7 text-xs"
                           >
                             <ArrowRightLeft className="mr-1 h-3 w-3" />
