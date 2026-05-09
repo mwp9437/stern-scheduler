@@ -95,8 +95,11 @@ Full append-only archive of all session summaries. NOT used day-to-day. See `cur
 **Issues found and resolved:**
 - README for ingest scripts lacked a `course_descriptions.py` section. Added.
 
+**Late additions (post-closeout, same session):**
+- Moved `Stern Scheduler/Course descriptions.md` → `stern-scheduler/scripts/ingest/data/course_descriptions.md` (gitignored data/ dir, matches `course_descriptions.py`'s default `--md` path).
+- Expanded permissions to reduce popup friction (commit `5def5e6`): broad `Bash` allow + `Glob`/`Grep`/`WebFetch`/`WebSearch`/non-force `git push`. Added safety denies: `rm -rf` on root or home, `sudo *`.
+
 **Outstanding / next session:**
 - Wishlist prompt in conversation covers 5 deferred features (multi-scenario, multi-day custom blocks, click-to-edit class, slot-modal course picker, off-calendar dates inline). Paste into a fresh session.
-- One stray file: `Stern Scheduler/Course descriptions.md` likely the source markdown for course_descriptions.py — ideal home is `stern-scheduler/scripts/ingest/data/course_descriptions.md` (gitignored). User can move whenever.
 
 ---

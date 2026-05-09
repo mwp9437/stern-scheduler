@@ -38,10 +38,13 @@ Full history: `_system/working/build-history.md` | Current state: `_system/worki
 **Issues found and resolved:**
 - README for ingest scripts lacked a `course_descriptions.py` section (cloud commit missed it). Added.
 
+**Late additions (post-closeout, same session):**
+- Moved `Stern Scheduler/Course descriptions.md` → `stern-scheduler/scripts/ingest/data/course_descriptions.md` (gitignored data/ dir, matches `course_descriptions.py`'s default `--md` path; next session can run the script with no flags).
+- Expanded permissions to reduce popup friction (commit `5def5e6`): broad `Bash` allow + `Glob`/`Grep`/`WebFetch`/`WebSearch`/non-force `git push`. Added new safety denies: `rm -rf` on root or home, `sudo *`. Routine work now runs without prompts; destructive patterns hard-stop.
+
 **Outstanding / next session:**
 - Wishlist prompt drafted in conversation history covers the 5 deferred features (multi-scenario, multi-day custom blocks, click-to-edit class, slot-modal course picker, off-calendar dates inline). Paste it into a fresh session to kick off.
-- Live deploy auto-redeploys on push — no smoke test needed; the four commits pushed today are docs + permissions only (no user-facing code change).
-- One stray file in parent: `Stern Scheduler/Course descriptions.md` looks like the source markdown for `course_descriptions.py`. If that's right, ideal home is `stern-scheduler/scripts/ingest/data/course_descriptions.md` (gitignored data/ dir). User can move whenever.
+- Live deploy auto-redeploys on push — no smoke test needed; today's commits are docs + permissions only (no user-facing code change).
 
 ---
 
