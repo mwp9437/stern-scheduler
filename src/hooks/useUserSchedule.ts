@@ -186,6 +186,41 @@ export function useUserSchedule(userId: string | undefined, scenarioId: string |
     },
   });
 
+  // Swap one course for another (e.g. switching to a different section of the
+  // same class). Removes the old row, inserts the new one. The two-step ordering
+  // matters when oldId === newId (no-op via toggle) but in practice the caller
+  // already filters that case out.
+  const swapCourseMutation = useMutation({
+    mutationFn: async ({ oldId, newId }: { oldId: number; newId: number }) => {
+      if (!userId) throw new Error("Not authenticated");
+      if (!scenarioId) throw new Error("No active scenario");
+
+      const { error: deleteError } = await supabase
+        .from("user_schedules")
+        .delete()
+        .eq("user_id", userId)
+        .eq("scenario_id", scenarioId)
+        .eq("course_id", oldId);
+      if (deleteError) throw deleteError;
+
+      const { error: insertError } = await supabase
+        .from("user_schedules")
+        .insert({
+          user_id: userId,
+          scenario_id: scenarioId,
+          course_id: newId,
+        });
+      if (insertError) throw insertError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId, scenarioId] });
+      toast({ title: "Section swapped" });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to swap section", description: error.message, variant: "destructive" });
+    },
+  });
+
   // Toggle course selection
   const toggleCourse = useCallback((course: Course) => {
     if (selectedCourseIds.has(course.id)) {
@@ -240,6 +275,7 @@ export function useUserSchedule(userId: string | undefined, scenarioId: string |
     customEvents,
     isLoading,
     toggleCourse,
+    swapCourse: swapCourseMutation.mutate,
     addCustomEvent: addCustomEventMutation.mutate,
     updateCustomEvent: updateCustomEventMutation.mutate,
     removeCustomEvent: removeCustomEventMutation.mutate,

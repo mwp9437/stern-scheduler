@@ -10,11 +10,12 @@ import { AuthModal } from "@/components/scheduler/AuthModal";
 import { FeedbackModal } from "@/components/scheduler/FeedbackModal";
 import { FundraiserModal } from "@/components/scheduler/FundraiserModal";
 import { ScenarioSwitcher } from "@/components/scheduler/ScenarioSwitcher";
+import { CourseDetailModal } from "@/components/scheduler/CourseDetailModal";
 import { useCourses, getUniqueSubjects } from "@/hooks/useCourses";
 import { useUserSchedule } from "@/hooks/useUserSchedule";
 import { useScenarios } from "@/hooks/useScenarios";
 import { useAuth } from "@/hooks/useAuth";
-import { ScheduleStats, TimeSlotFilter, CalendarEvent, CustomEventType } from "@/types/scheduler";
+import { ScheduleStats, TimeSlotFilter, CalendarEvent, CustomEventType, Course } from "@/types/scheduler";
 import { getDay, getHours, getMinutes } from "date-fns";
 
 const Index = () => {
@@ -34,6 +35,7 @@ const Index = () => {
     selectedCourseIds,
     customEvents,
     toggleCourse,
+    swapCourse,
     addCustomEvent,
     updateCustomEvent,
     removeCustomEvent,
@@ -62,6 +64,7 @@ const Index = () => {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [detailCourse, setDetailCourse] = useState<Course | null>(null);
   const [courseFinderCollapsed, setCourseFinderCollapsed] = useState(false);
   const [timeSlotFilter, setTimeSlotFilter] = useState<TimeSlotFilter | null>(null);
 
@@ -96,16 +99,30 @@ const Index = () => {
     setShowAddEventModal(true);
   }, [user]);
 
-  // Handle event selection (double-click on existing custom event)
+  // Route the event-click to the appropriate modal: course → detail/swap;
+  // custom block → existing add/edit modal.
   const handleEventSelect = useCallback((event: CalendarEvent) => {
     if (!user) {
       setShowAuthModal(true);
+      return;
+    }
+    if (event.resource.type === "course" && event.resource.course) {
+      setDetailCourse(event.resource.course);
       return;
     }
     setEditingEvent(event);
     setSelectedSlot(null);
     setShowAddEventModal(true);
   }, [user]);
+
+  const handleSwapCourse = useCallback((oldId: number, newId: number) => {
+    swapCourse({ oldId, newId });
+  }, [swapCourse]);
+
+  const handleRemoveCourse = useCallback((courseId: number) => {
+    const course = courses.find((c) => c.id === courseId);
+    if (course) toggleCourse(course);
+  }, [courses, toggleCourse]);
 
   // Handle drag and drop
   const handleEventDrop = useCallback((eventId: string, start: Date, end: Date) => {
@@ -239,6 +256,17 @@ const Index = () => {
       <FeedbackModal
         isOpen={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
+      />
+
+      <CourseDetailModal
+        isOpen={!!detailCourse}
+        onClose={() => setDetailCourse(null)}
+        course={detailCourse}
+        allCourses={courses}
+        selectedCourseIds={selectedCourseIds}
+        customEvents={customEvents}
+        onRemove={handleRemoveCourse}
+        onSwap={handleSwapCourse}
       />
 
       <FundraiserModal />

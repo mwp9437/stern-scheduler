@@ -267,10 +267,11 @@ export function ScheduleCalendar({
     }, 300);
   }, [onSlotSelect, onSlotDoubleClick]);
 
-  // Handle event selection (double-click to edit custom events)
+  // Open the appropriate detail modal — custom event editor for custom blocks,
+  // course detail (info / remove / swap) for class blocks. Index.tsx routes
+  // by `event.resource.type`.
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
-    // Only allow editing custom events
-    if (event.resource.type === "custom" && onEventSelect) {
+    if (onEventSelect) {
       onEventSelect(event);
     }
   }, [onEventSelect]);
