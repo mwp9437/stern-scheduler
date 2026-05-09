@@ -116,6 +116,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_schedule_scenarios: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_schedules: {
         Row: {
           course_id: number | null
@@ -124,6 +148,7 @@ export type Database = {
           custom_title: string | null
           end_time: string | null
           id: string
+          scenario_id: string
           start_time: string | null
           user_id: string
         }
@@ -134,6 +159,7 @@ export type Database = {
           custom_title?: string | null
           end_time?: string | null
           id?: string
+          scenario_id: string
           start_time?: string | null
           user_id: string
         }
@@ -144,6 +170,7 @@ export type Database = {
           custom_title?: string | null
           end_time?: string | null
           id?: string
+          scenario_id?: string
           start_time?: string | null
           user_id?: string
         }
@@ -153,6 +180,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_schedules_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "user_schedule_scenarios"
             referencedColumns: ["id"]
           },
         ]

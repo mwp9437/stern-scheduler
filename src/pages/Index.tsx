@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { SlotInfo } from "react-big-calendar";
 import { Header } from "@/components/scheduler/Header";
 import { Footer } from "@/components/scheduler/Footer";
@@ -9,8 +9,10 @@ import { AddEventModal } from "@/components/scheduler/AddEventModal";
 import { AuthModal } from "@/components/scheduler/AuthModal";
 import { FeedbackModal } from "@/components/scheduler/FeedbackModal";
 import { FundraiserModal } from "@/components/scheduler/FundraiserModal";
+import { ScenarioSwitcher } from "@/components/scheduler/ScenarioSwitcher";
 import { useCourses, getUniqueSubjects } from "@/hooks/useCourses";
 import { useUserSchedule } from "@/hooks/useUserSchedule";
+import { useScenarios } from "@/hooks/useScenarios";
 import { useAuth } from "@/hooks/useAuth";
 import { ScheduleStats, TimeSlotFilter, CalendarEvent, CustomEventType } from "@/types/scheduler";
 import { getDay, getHours, getMinutes } from "date-fns";
@@ -18,6 +20,16 @@ import { getDay, getHours, getMinutes } from "date-fns";
 const Index = () => {
   const { user, isLoading: authLoading, signIn, signUp, signOut } = useAuth();
   const { data: courses = [], isLoading: coursesLoading } = useCourses();
+  const {
+    scenarios,
+    activeScenarioId,
+    isLoading: scenariosLoading,
+    createScenario,
+    duplicateScenario,
+    renameScenario,
+    deleteScenario,
+    setActive,
+  } = useScenarios(user?.id);
   const {
     selectedCourseIds,
     customEvents,
@@ -27,7 +39,23 @@ const Index = () => {
     removeCustomEvent,
     calculateStats,
     getOffCalendarCourses,
-  } = useUserSchedule(user?.id);
+  } = useUserSchedule(user?.id, activeScenarioId);
+
+  // First-time user has no scenarios row — auto-create "Plan A". The
+  // ref guards against StrictMode double-fire; the unique constraint on
+  // (user_id, name) makes the insert idempotent regardless.
+  const autoCreatedRef = useRef(false);
+  useEffect(() => {
+    if (!user) {
+      autoCreatedRef.current = false;
+      return;
+    }
+    if (scenariosLoading || scenarios.length > 0 || autoCreatedRef.current) return;
+    autoCreatedRef.current = true;
+    void createScenario("Plan A").catch(() => {
+      autoCreatedRef.current = false;
+    });
+  }, [user, scenariosLoading, scenarios.length, createScenario]);
 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
@@ -117,6 +145,20 @@ const Index = () => {
         onLoginClick={() => setShowAuthModal(true)}
         onLogoutClick={handleLogout}
         onFeedbackClick={() => setShowFeedbackModal(true)}
+        scenarioSwitcher={
+          user ? (
+            <ScenarioSwitcher
+              scenarios={scenarios}
+              activeId={activeScenarioId}
+              isLoading={scenariosLoading}
+              createScenario={createScenario}
+              duplicateScenario={duplicateScenario}
+              renameScenario={renameScenario}
+              deleteScenario={deleteScenario}
+              setActive={setActive}
+            />
+          ) : null
+        }
       />
 
       <div className="flex flex-1 overflow-hidden">

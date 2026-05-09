@@ -5,25 +5,26 @@ import { Course, UserSchedule, CustomEventType, ScheduleStats, isOffCalendar, EV
 import { useToast } from "@/hooks/use-toast";
 import { differenceInMinutes } from "date-fns";
 
-export function useUserSchedule(userId: string | undefined) {
+export function useUserSchedule(userId: string | undefined, scenarioId: string | undefined) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch user's saved schedule
+  // Fetch user's saved schedule for the active scenario
   const { data: userSchedules = [], isLoading } = useQuery({
-    queryKey: ["user_schedules", userId],
+    queryKey: ["user_schedules", userId, scenarioId],
     queryFn: async (): Promise<UserSchedule[]> => {
-      if (!userId) return [];
-      
+      if (!userId || !scenarioId) return [];
+
       const { data, error } = await supabase
         .from("user_schedules")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("scenario_id", scenarioId);
 
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !!userId,
+    enabled: !!userId && !!scenarioId,
   });
 
   // Get selected course IDs
@@ -44,18 +45,20 @@ export function useUserSchedule(userId: string | undefined) {
   const addCourseMutation = useMutation({
     mutationFn: async (courseId: number) => {
       if (!userId) throw new Error("Not authenticated");
-      
+      if (!scenarioId) throw new Error("No active scenario");
+
       const { error } = await supabase
         .from("user_schedules")
         .insert({
           user_id: userId,
+          scenario_id: scenarioId,
           course_id: courseId,
         });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId] });
+      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId, scenarioId] });
       toast({ title: "Course added to schedule" });
     },
     onError: (error) => {
@@ -67,17 +70,19 @@ export function useUserSchedule(userId: string | undefined) {
   const removeCourseMutation = useMutation({
     mutationFn: async (courseId: number) => {
       if (!userId) throw new Error("Not authenticated");
-      
+      if (!scenarioId) throw new Error("No active scenario");
+
       const { error } = await supabase
         .from("user_schedules")
         .delete()
         .eq("user_id", userId)
+        .eq("scenario_id", scenarioId)
         .eq("course_id", courseId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId] });
+      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId, scenarioId] });
       toast({ title: "Course removed from schedule" });
     },
     onError: (error) => {
@@ -94,11 +99,13 @@ export function useUserSchedule(userId: string | undefined) {
       end: Date;
     }) => {
       if (!userId) throw new Error("Not authenticated");
-      
+      if (!scenarioId) throw new Error("No active scenario");
+
       const { error } = await supabase
         .from("user_schedules")
         .insert({
           user_id: userId,
+          scenario_id: scenarioId,
           custom_title: event.title,
           custom_event_type: event.type, // Already lowercase from CustomEventType
           start_time: event.start.toISOString(),
@@ -108,7 +115,7 @@ export function useUserSchedule(userId: string | undefined) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId] });
+      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId, scenarioId] });
       toast({ title: "Block added to schedule" });
     },
     onError: (error) => {
@@ -125,7 +132,8 @@ export function useUserSchedule(userId: string | undefined) {
       eventType?: CustomEventType;
     }) => {
       if (!userId) throw new Error("Not authenticated");
-      
+      if (!scenarioId) throw new Error("No active scenario");
+
       const updateData: Record<string, unknown> = {
         start_time: event.start.toISOString(),
         end_time: event.end.toISOString(),
@@ -136,17 +144,18 @@ export function useUserSchedule(userId: string | undefined) {
         updateData.custom_event_type = event.eventType;
         updateData.custom_title = EVENT_TYPE_LABELS[event.eventType];
       }
-      
+
       const { error } = await supabase
         .from("user_schedules")
         .update(updateData)
         .eq("id", event.id)
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("scenario_id", scenarioId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId] });
+      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId, scenarioId] });
     },
     onError: (error) => {
       toast({ title: "Failed to update event", description: error.message, variant: "destructive" });
@@ -157,17 +166,19 @@ export function useUserSchedule(userId: string | undefined) {
   const removeCustomEventMutation = useMutation({
     mutationFn: async (eventId: string) => {
       if (!userId) throw new Error("Not authenticated");
-      
+      if (!scenarioId) throw new Error("No active scenario");
+
       const { error } = await supabase
         .from("user_schedules")
         .delete()
         .eq("id", eventId)
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("scenario_id", scenarioId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId] });
+      queryClient.invalidateQueries({ queryKey: ["user_schedules", userId, scenarioId] });
       toast({ title: "Block removed from schedule" });
     },
     onError: (error) => {
@@ -187,12 +198,12 @@ export function useUserSchedule(userId: string | undefined) {
   // Calculate stats - all formatted to 1 decimal place
   const calculateStats = useCallback((courses: Course[]): ScheduleStats => {
     const selectedCourses = courses.filter((c) => selectedCourseIds.has(c.id));
-    
+
     const totalCredits = selectedCourses.reduce((sum, c) => sum + (c.credits ?? 0), 0);
-    
+
     let internshipHours = 0;
     let recruitingHours = 0;
-    
+
     customEvents.forEach((event) => {
       if (event.start_time && event.end_time) {
         const minutes = differenceInMinutes(
@@ -200,7 +211,7 @@ export function useUserSchedule(userId: string | undefined) {
           new Date(event.start_time)
         );
         const hours = minutes / 60;
-        
+
         // Use lowercase comparison for database values
         if (event.custom_event_type === "internship") {
           internshipHours += hours;
@@ -212,7 +223,7 @@ export function useUserSchedule(userId: string | undefined) {
 
     // Total Scheduled Load = Credits + Internship Hours + Recruiting Hours
     const totalScheduledLoad = totalCredits + internshipHours + recruitingHours;
-    
+
     return { totalCredits, internshipHours, recruitingHours, totalScheduledLoad };
   }, [selectedCourseIds, customEvents]);
 

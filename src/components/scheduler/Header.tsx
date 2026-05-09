@@ -1,5 +1,7 @@
+import { ReactNode } from "react";
 import { BookOpen, Clock, Briefcase, HelpCircle, LogIn, LogOut, Calculator, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { ScheduleStats } from "@/types/scheduler";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -9,6 +11,7 @@ interface HeaderProps {
   onLoginClick: () => void;
   onLogoutClick: () => void;
   onFeedbackClick: () => void;
+  scenarioSwitcher?: ReactNode;
 }
 
 export function Header({
@@ -16,12 +19,13 @@ export function Header({
   isLoggedIn,
   onLoginClick,
   onLogoutClick,
-  onFeedbackClick
+  onFeedbackClick,
+  scenarioSwitcher,
 }: HeaderProps) {
   return (
     <header className="border-b border-border bg-card px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Left: Logo + Title */}
+        {/* Left: Logo + Title + (optional) Scenario switcher */}
         <div className="flex items-center gap-3">
           <img
             alt="Stern Scheduler"
@@ -30,6 +34,12 @@ export function Header({
             src="/lovable-uploads/e287b438-2d2a-4de1-8854-36cfe5fa2caa.png"
           />
           <h1 className="text-2xl font-bold text-primary">Stern Scheduler</h1>
+          {scenarioSwitcher && (
+            <>
+              <Separator orientation="vertical" className="h-6" />
+              {scenarioSwitcher}
+            </>
+          )}
         </div>
 
         {/* Center: Stats */}
