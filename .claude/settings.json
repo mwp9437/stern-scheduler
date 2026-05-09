@@ -5,6 +5,11 @@
       "Read",
       "Edit",
       "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Bash",
 
       "Bash(git status)",
       "Bash(git status:*)",
@@ -87,6 +92,15 @@
       "mcp__0cf9dae8-0c7c-4f2a-8a51-14a7ee1921e1__execute_sql"
     ],
     "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/*)",
+      "Bash(rm -rf $HOME)",
+      "Bash(rm -rf $HOME/*)",
+      "Bash(sudo:*)",
+      "Bash(sudo *)",
+
       "Bash(git push --force:*)",
       "Bash(git push --force *)",
       "Bash(git push -f:*)",
