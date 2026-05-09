@@ -251,6 +251,10 @@ const Index = () => {
         slotStart={selectedSlot?.start ?? null}
         slotEnd={selectedSlot?.end ?? null}
         editingEvent={editingEvent}
+        courses={courses}
+        selectedCourseIds={selectedCourseIds}
+        customEvents={customEvents}
+        onToggleCourse={toggleCourse}
       />
 
       <FeedbackModal
