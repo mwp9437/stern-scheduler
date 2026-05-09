@@ -31,7 +31,9 @@ import {
   DURATION_TYPE_LABELS,
   DurationType,
   coursesConflict,
-  courseConflictsWithEvent
+  courseConflictsWithEvent,
+  isOffCalendar,
+  isShortSpan,
 } from "@/types/scheduler";
 
 interface CourseFinderProps {
@@ -399,6 +401,10 @@ export function CourseFinder({
             {filteredCourses.map((course) => {
               const isSelected = selectedCourseIds.has(course.id);
               const durationType = getDurationType(course);
+              // For off-calendar (Intensive, DBi) or short-span courses, the
+              // day-letter prefix implies weekly recurrence which is misleading.
+              // Show the date range instead so the actual schedule is clear.
+              const showAsDateRange = isOffCalendar(course) || isShortSpan(course);
 
               // Format time display
               const formatTime = (time: string | null) => {
@@ -488,13 +494,14 @@ export function CourseFinder({
                         (Section: {course.section})
                       </p>
                     )}
-                    {/* Credits | Days | Time */}
+                    {/* Credits | (Days |) Time | (Dates) */}
                     <div className="text-xs text-muted-foreground truncate">
                       {course.credits?.toFixed(1) ?? "0.0"} credits
-                      {course.meeting_days && ` | ${course.meeting_days}`}
+                      {!showAsDateRange && course.meeting_days && ` | ${course.meeting_days}`}
                       {course.start_time && course.end_time && (
                         <> | {formatTime(course.start_time)} - {formatTime(course.end_time)}</>
                       )}
+                      {showAsDateRange && course.dates_full && ` | ${course.dates_full}`}
                     </div>
                     {course.instructor && (
                       <div className="text-xs text-muted-foreground truncate mt-0.5">

@@ -131,6 +131,37 @@ export function isHalfSemester(course: Course): boolean {
   return course.duration_type === "First Half" || course.duration_type === "Second Half";
 }
 
+// Parse a "MM/DD-MM/DD" date span string into the inclusive day count (e.g.
+// "08/30-08/31" → 1). Year is fixed at an arbitrary stable value because the
+// source string omits the year and Stern course spans never cross Dec→Jan.
+// Returns null if the format doesn't match (e.g. empty / multi-segment ranges).
+export function parseDateSpanDays(datesFull: string | null): number | null {
+  if (!datesFull) return null;
+  const match = datesFull.trim().match(/^(\d{1,2})\/(\d{1,2})-(\d{1,2})\/(\d{1,2})$/);
+  if (!match) return null;
+  const [, m1, d1, m2, d2] = match;
+  const start = Date.UTC(2000, parseInt(m1, 10) - 1, parseInt(d1, 10));
+  const end = Date.UTC(2000, parseInt(m2, 10) - 1, parseInt(d2, 10));
+  return Math.floor((end - start) / (24 * 60 * 60 * 1000));
+}
+
+// True if a course's meeting span is short enough that "MWF 9-12" reads more
+// like a one-off block than a recurring weekly pattern. Pairs with isOffCalendar
+// for the date-range display in CourseFinder.
+export function isShortSpan(course: Course): boolean {
+  const days = parseDateSpanDays(course.dates_full);
+  return days !== null && days <= 7;
+}
+
+// Strip the leading day-letter prefix from a "Days HH:MM AM - HH:MM PM" string.
+// For off-calendar courses the day letters imply weekly recurrence which is
+// misleading; the date range tells the actual story.
+export function formatOffCalendarTime(meetingTimesFull: string | null): string {
+  if (!meetingTimesFull) return "";
+  const match = meetingTimesFull.match(/^[A-Za-z]+\s+(.*)$/);
+  return match ? match[1] : meetingTimesFull;
+}
+
 // Direct mapping — duration_type is the source of truth (set by ingest from
 // Stern's Session code). No date math.
 export function getDurationType(course: Course): DurationType {

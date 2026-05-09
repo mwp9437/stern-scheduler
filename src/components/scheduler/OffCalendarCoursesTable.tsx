@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Course } from "@/types/scheduler";
+import { Course, formatOffCalendarTime } from "@/types/scheduler";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -20,17 +20,6 @@ import {
 interface OffCalendarCoursesTableProps {
   courses: Course[];
   defaultOpen?: boolean;
-}
-
-// Off-calendar courses don't recur weekly — they meet on the specific days
-// listed in `dates_full`. The day-letter prefix in `meeting_times_full`
-// (e.g. "MSu 9:00 am - 4:00 pm") reads like a recurring pattern, which is
-// misleading for a one-weekend intensive. Strip it; the Dates column carries
-// the real meeting dates.
-function formatOffCalendarTime(meetingTimesFull: string | null): string {
-  if (!meetingTimesFull) return "";
-  const match = meetingTimesFull.match(/^[A-Za-z]+\s+(.*)$/);
-  return match ? match[1] : meetingTimesFull;
 }
 
 // Selected courses that don't render on the weekly grid: Intensive (INS/INW)
