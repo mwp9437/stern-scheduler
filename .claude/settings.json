@@ -37,6 +37,9 @@
       "Bash(git remote -v)",
       "Bash(git rev-parse:*)",
       "Bash(git rev-parse *)",
+      "Bash(git push)",
+      "Bash(git push:*)",
+      "Bash(git push *)",
 
       "Bash(npm install)",
       "Bash(npm i)",
