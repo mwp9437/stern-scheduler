@@ -86,38 +86,74 @@ export function Header({
                 User Guide
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>How to Use Stern Scheduler</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 text-sm">
                 <div>
-                  <h4 className="font-semibold mb-1">1. Search & Add Courses</h4>
-                  <p className="text-muted-foreground mb-2">
-                    a. Use the search bar and filters on the right panel to find courses. Search by course name or professor.
+                  <h4 className="font-semibold mb-1">1. Find courses</h4>
+                  <p className="text-muted-foreground mb-1">
+                    a. Search by course name or professor in the right panel; filter by subject, credits, duration, or meeting time.
                   </p>
-                  <p className="text-muted-foreground mb-2">
-                    b. <strong>Filter by Time Slot:</strong> Single-click a time slot on the calendar to filter courses in the course finder.
+                  <p className="text-muted-foreground mb-1">
+                    b. <strong>Click any time slot</strong> on the calendar to filter the right panel to courses meeting at that day/time.
                   </p>
-                  <p className="text-muted-foreground mb-2">
-                    c. Click "Add" to add a course to your schedule.
-                  </p>
-                  <p className="text-muted-foreground text-xs italic">
-                    Note: Courses with "Alternate Schedule" timing appear in the table below the calendar instead.
+                  <p className="text-muted-foreground mb-1">
+                    c. <strong>Hover</strong> a course title for the full catalog description; click the link icon for the syllabus (NYU login required).
                   </p>
                 </div>
+
                 <div>
-                  <h4 className="font-semibold mb-1">2. Add Custom Blocks</h4>
-                  <p className="text-muted-foreground">
-                    Double-click any empty time slot on the calendar to add custom blocks like Internships, Recruiting/Study time, or Personal blocks.
+                  <h4 className="font-semibold mb-1">2. Add a course to your schedule</h4>
+                  <p className="text-muted-foreground mb-1">
+                    a. Click the <strong>+</strong> button on any course in the right panel.
+                  </p>
+                  <p className="text-muted-foreground mb-1">
+                    b. Or <strong>double-click an empty slot</strong> and switch to the <strong>"Pick a Course"</strong> tab to choose from courses that meet at that time.
                   </p>
                 </div>
+
                 <div>
-                  <h4 className="font-semibold mb-1">3. Review Summary Stats</h4>
-                  <p className="text-muted-foreground">
-                    Review the summary statistics at the top of the calendar.
+                  <h4 className="font-semibold mb-1">3. Manage a course on the calendar</h4>
+                  <p className="text-muted-foreground mb-1">
+                    Click any course block to open its details. From there you can <strong>remove it</strong> or <strong>swap to another section</strong> of the same course in one click. Conflicting sections are flagged with a red badge.
                   </p>
                 </div>
+
+                <div>
+                  <h4 className="font-semibold mb-1">4. Custom blocks (internship, recruiting, personal)</h4>
+                  <p className="text-muted-foreground mb-1">
+                    a. Double-click an empty slot. Pick the block type, the day chips (M T W R F Sa Su — <strong>select multiple at once</strong>), and start/end time.
+                  </p>
+                  <p className="text-muted-foreground mb-1">
+                    b. "Study MWF 2-4pm" is one submit, three blocks.
+                  </p>
+                  <p className="text-muted-foreground mb-1">
+                    c. <strong>Drag or resize</strong> a block on the calendar; <strong>click it</strong> to edit type, time, or delete.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-1">5. Multiple scenarios (Plan A / Plan B)</h4>
+                  <p className="text-muted-foreground mb-1">
+                    Use the <strong>scenario switcher</strong> next to the logo (visible when logged in) to keep parallel drafts.
+                  </p>
+                  <p className="text-muted-foreground mb-1">
+                    Create new scenarios, <strong>duplicate</strong> the current one to branch off, rename, or delete. Each scenario has its own courses and custom blocks — switch at any time to compare.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-1">6. Stats and off-calendar courses</h4>
+                  <p className="text-muted-foreground mb-1">
+                    The header tracks total credits, internship hours, recruiting hours, and total scheduled load — all updating live as you add or swap.
+                  </p>
+                  <p className="text-muted-foreground mb-1">
+                    Intensive (INS/INW) and DBi (XTL) courses don't recur weekly; selected ones appear in the <strong>Off-Calendar Courses</strong> table below the calendar with their actual date range.
+                  </p>
+                </div>
+
                 <p className="text-muted-foreground text-xs italic pt-2 border-t border-border">
                   Note: Please double check course schedules and availability in Albert.
                 </p>
