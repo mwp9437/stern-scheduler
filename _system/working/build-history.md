@@ -61,3 +61,42 @@ Full append-only archive of all session summaries. NOT used day-to-day. See `cur
 - Local dev server (port 8080) was still running at session end.
 
 ---
+
+## [2026-05-01] — Session: Reconcile cloud changes, move project context into repo
+
+**What was done:**
+- Fast-forwarded local main from `26dea54` → `368fa3b`. Cloud Claude Code (mobile/web) had shipped: syllabus URL on courses + `scripts/ingest/syllabus_links.py`; course descriptions + `scripts/ingest/course_descriptions.py`; permission tweak to move `git push` from deny → ask.
+- Moved `CLAUDE.md` and `_system/working/{change-log,build-history,current-state}.md` into the `stern-scheduler/` git repo so cloud Claude Code (which clones the repo) sees the same project context as desktop sessions. Parent folder's `CLAUDE.md` is now a single-line `@stern-scheduler/CLAUDE.md` import router.
+- Refreshed `CLAUDE.md` end-to-end for post-Fall-rework state: 5 duration types, `OffCalendarCoursesTable`, `meeting_patterns` JSONB, syllabus + description columns, `isOffCalendar`, primary-pattern calendar rendering. Reordered Roadmap to put the new wishlist (multi-scenario, click-to-edit class, etc.) at the top. Added a desktop + cloud workflow note.
+- Documented `course_descriptions.py` in `scripts/ingest/README.md` (it shipped without a section). Extended the Spring 2027 checklist to cover all three ingest steps.
+- Auto-allowed non-force `git push` in both the canonical `.claude/settings.json` and the parent's session mirror. Force variants stay denied.
+- Cleanup: deleted parent `_system/` (now duplicated in repo), deleted `scripts/ingest/_fall_2026_data.sql` (regenerable build artifact).
+
+**Files created:**
+- `stern-scheduler/CLAUDE.md` — canonical project instructions in repo.
+- `stern-scheduler/_system/working/{change-log,build-history,current-state}.md` — logs moved into repo.
+
+**Files modified:**
+- `Stern Scheduler/CLAUDE.md` — single-line `@stern-scheduler/CLAUDE.md` import router.
+- `stern-scheduler/CLAUDE.md` — refreshed for current state (74+/58- diff).
+- `stern-scheduler/scripts/ingest/README.md` — added course_descriptions.py section + 3-step Spring 2027 checklist.
+- `stern-scheduler/.claude/settings.json` — `git push` moved to allow.
+- `Stern Scheduler/.claude/settings.local.json` — same permission update for current session.
+
+**Files deleted:**
+- `Stern Scheduler/_system/` — duplicates of repo copies.
+- `stern-scheduler/scripts/ingest/_fall_2026_data.sql` — regenerable.
+
+**Decisions made:**
+- CLAUDE.md canonical in repo, router stub at parent. Single source of truth, no duplication.
+- Auto-allow plain `git push`; keep force variants denied.
+- Cleaned up parent `_system/` to avoid drift.
+
+**Issues found and resolved:**
+- README for ingest scripts lacked a `course_descriptions.py` section. Added.
+
+**Outstanding / next session:**
+- Wishlist prompt in conversation covers 5 deferred features (multi-scenario, multi-day custom blocks, click-to-edit class, slot-modal course picker, off-calendar dates inline). Paste into a fresh session.
+- One stray file: `Stern Scheduler/Course descriptions.md` likely the source markdown for course_descriptions.py — ideal home is `stern-scheduler/scripts/ingest/data/course_descriptions.md` (gitignored). User can move whenever.
+
+---

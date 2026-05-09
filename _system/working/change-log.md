@@ -4,6 +4,47 @@ Full history: `_system/working/build-history.md` | Current state: `_system/worki
 
 ---
 
+## [2026-05-01] — Session: Reconcile cloud changes, move project context into repo
+
+**What was done:**
+- Fast-forwarded local main from `26dea54` → `368fa3b`. Cloud Claude Code (mobile/web) had shipped: syllabus URL on courses + `scripts/ingest/syllabus_links.py`; course descriptions + `scripts/ingest/course_descriptions.py`; permission tweak to move `git push` from deny → ask.
+- Moved `CLAUDE.md` and `_system/working/{change-log,build-history,current-state}.md` into the `stern-scheduler/` git repo so cloud Claude Code (which clones the repo) sees the same project context as desktop sessions. Parent folder's `CLAUDE.md` is now a single-line `@stern-scheduler/CLAUDE.md` import router.
+- Refreshed `CLAUDE.md` end-to-end for post-Fall-rework state: 5 duration types, `OffCalendarCoursesTable`, `meeting_patterns` JSONB, syllabus + description columns, `isOffCalendar`, primary-pattern calendar rendering. Reordered Roadmap to put the new wishlist (multi-scenario, click-to-edit class, etc.) at the top. Added a desktop + cloud workflow note.
+- Documented `course_descriptions.py` in `scripts/ingest/README.md` (it shipped without a section). Extended the Spring 2027 checklist to cover all three ingest steps (catalog xlsx + syllabus HTML + description markdown).
+- Auto-allowed non-force `git push` in both the canonical `.claude/settings.json` and the parent's session mirror. Force variants (`--force`, `-f`) stay denied. No more push prompts.
+- Cleanup: deleted parent `_system/` (now duplicated in repo), deleted `scripts/ingest/_fall_2026_data.sql` (regenerable build artifact).
+
+**Files created:**
+- `stern-scheduler/CLAUDE.md` — canonical project instructions in repo (router stub at parent).
+- `stern-scheduler/_system/working/change-log.md`, `build-history.md`, `current-state.md` — logs moved into repo.
+
+**Files modified:**
+- `Stern Scheduler/CLAUDE.md` — replaced with `@stern-scheduler/CLAUDE.md` import router.
+- `stern-scheduler/CLAUDE.md` — refreshed for current state (74+/58- diff).
+- `stern-scheduler/scripts/ingest/README.md` — added course_descriptions.py section + 3-step Spring 2027 checklist.
+- `stern-scheduler/.claude/settings.json` — `git push` moved to allow.
+- `Stern Scheduler/.claude/settings.local.json` — same permission update for current session.
+- `stern-scheduler/_system/working/current-state.md` — workspace tree reflects repo-root canonical layout; schema table includes `syllabus_url` + `description`.
+
+**Files deleted:**
+- `Stern Scheduler/_system/` (whole tree) — duplicates of repo copies.
+- `stern-scheduler/scripts/ingest/_fall_2026_data.sql` — regenerable.
+
+**Decisions made:**
+- CLAUDE.md goes in the repo; the parent gets a one-line `@stern-scheduler/CLAUDE.md` import so desktop sessions launched from the parent cwd still find it. Single source of truth, no duplication.
+- Auto-allow plain `git push`; keep force variants denied. Friction was costing more than it bought.
+- Cleaned up the parent `_system/` since the canonical copies live in the repo now. Avoids drift between two locations.
+
+**Issues found and resolved:**
+- README for ingest scripts lacked a `course_descriptions.py` section (cloud commit missed it). Added.
+
+**Outstanding / next session:**
+- Wishlist prompt drafted in conversation history covers the 5 deferred features (multi-scenario, multi-day custom blocks, click-to-edit class, slot-modal course picker, off-calendar dates inline). Paste it into a fresh session to kick off.
+- Live deploy auto-redeploys on push — no smoke test needed; the four commits pushed today are docs + permissions only (no user-facing code change).
+- One stray file in parent: `Stern Scheduler/Course descriptions.md` looks like the source markdown for `course_descriptions.py`. If that's right, ideal home is `stern-scheduler/scripts/ingest/data/course_descriptions.md` (gitignored data/ dir). User can move whenever.
+
+---
+
 ## [2026-04-30] — Session: Fall 2026 catalog ingest + courses schema rework
 
 **What was done:**
