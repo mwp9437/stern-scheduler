@@ -36,7 +36,7 @@ const Index = () => {
     customEvents,
     toggleCourse,
     swapCourse,
-    addCustomEvent,
+    addCustomEvents,
     updateCustomEvent,
     removeCustomEvent,
     calculateStats,
@@ -245,7 +245,7 @@ const Index = () => {
           setShowAddEventModal(false);
           setEditingEvent(null);
         }}
-        onAdd={addCustomEvent}
+        onAdd={addCustomEvents}
         onUpdate={handleUpdateEvent}
         onDelete={handleDeleteEvent}
         slotStart={selectedSlot?.start ?? null}

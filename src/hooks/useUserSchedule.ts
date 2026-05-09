@@ -90,33 +90,42 @@ export function useUserSchedule(userId: string | undefined, scenarioId: string |
     },
   });
 
-  // Add custom event mutation - using lowercase types for database constraint
-  const addCustomEventMutation = useMutation({
-    mutationFn: async (event: {
-      title: string;
-      type: CustomEventType;
-      start: Date;
-      end: Date;
-    }) => {
+  // Add one or more custom events in a single round-trip. Multi-day blocks
+  // (e.g. "study MWF 2-4pm") emit one row per chosen day, all in the same
+  // INSERT — keeps invalidation and toast count to one.
+  const addCustomEventsBatchMutation = useMutation({
+    mutationFn: async (
+      events: Array<{
+        title: string;
+        type: CustomEventType;
+        start: Date;
+        end: Date;
+      }>
+    ) => {
       if (!userId) throw new Error("Not authenticated");
       if (!scenarioId) throw new Error("No active scenario");
+      if (events.length === 0) return;
 
-      const { error } = await supabase
-        .from("user_schedules")
-        .insert({
-          user_id: userId,
-          scenario_id: scenarioId,
-          custom_title: event.title,
-          custom_event_type: event.type, // Already lowercase from CustomEventType
-          start_time: event.start.toISOString(),
-          end_time: event.end.toISOString(),
-        });
+      const rows = events.map((event) => ({
+        user_id: userId,
+        scenario_id: scenarioId,
+        custom_title: event.title,
+        custom_event_type: event.type,
+        start_time: event.start.toISOString(),
+        end_time: event.end.toISOString(),
+      }));
 
+      const { error } = await supabase.from("user_schedules").insert(rows);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, events) => {
       queryClient.invalidateQueries({ queryKey: ["user_schedules", userId, scenarioId] });
-      toast({ title: "Block added to schedule" });
+      toast({
+        title:
+          events.length > 1
+            ? `${events.length} blocks added to schedule`
+            : "Block added to schedule",
+      });
     },
     onError: (error) => {
       toast({ title: "Failed to add block", description: error.message, variant: "destructive" });
@@ -276,7 +285,7 @@ export function useUserSchedule(userId: string | undefined, scenarioId: string |
     isLoading,
     toggleCourse,
     swapCourse: swapCourseMutation.mutate,
-    addCustomEvent: addCustomEventMutation.mutate,
+    addCustomEvents: addCustomEventsBatchMutation.mutate,
     updateCustomEvent: updateCustomEventMutation.mutate,
     removeCustomEvent: removeCustomEventMutation.mutate,
     calculateStats,

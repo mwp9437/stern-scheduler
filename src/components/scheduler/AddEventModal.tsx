@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { format, setHours, setMinutes, getHours, getMinutes } from "date-fns";
+import { useState, useEffect, useMemo } from "react";
+import { format, setHours, setMinutes, getHours, getMinutes, addDays } from "date-fns";
 import { CustomEventType, EVENT_TYPE_LABELS, CalendarEvent } from "@/types/scheduler";
 import {
   Dialog,
@@ -22,7 +22,7 @@ import { Briefcase, BookOpen, User, Trash2 } from "lucide-react";
 interface AddEventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (event: { title: string; type: CustomEventType; start: Date; end: Date }) => void;
+  onAdd: (events: Array<{ title: string; type: CustomEventType; start: Date; end: Date }>) => void;
   onUpdate?: (eventId: string, start: Date, end: Date, eventType?: CustomEventType) => void;
   onDelete?: (eventId: string) => void;
   slotStart: Date | null;
@@ -31,25 +31,41 @@ interface AddEventModalProps {
 }
 
 const eventTypes: { type: CustomEventType; label: string; icon: React.ReactNode; colorClass: string }[] = [
-  { 
-    type: "internship", 
-    label: "Internship", 
+  {
+    type: "internship",
+    label: "Internship",
     icon: <Briefcase className="h-5 w-5" />,
     colorClass: "bg-event-internship text-event-internship-foreground hover:bg-event-internship/80"
   },
-  { 
-    type: "recruiting", 
-    label: "Recruiting / Study", 
+  {
+    type: "recruiting",
+    label: "Recruiting / Study",
     icon: <BookOpen className="h-5 w-5" />,
     colorClass: "bg-event-recruiting text-event-recruiting-foreground hover:bg-event-recruiting/80"
   },
-  { 
-    type: "personal", 
-    label: "Personal", 
+  {
+    type: "personal",
+    label: "Personal",
     icon: <User className="h-5 w-5" />,
     colorClass: "bg-event-personal text-event-personal-foreground hover:bg-event-personal/80"
   },
 ];
+
+// Day chips in Monday-start order, matching the calendar layout. JS getDay()
+// uses Sunday=0, Monday=1, ..., Saturday=6.
+const DAY_CHIPS: { value: number; label: string }[] = [
+  { value: 1, label: "M" },
+  { value: 2, label: "T" },
+  { value: 3, label: "W" },
+  { value: 4, label: "R" },
+  { value: 5, label: "F" },
+  { value: 6, label: "Sa" },
+  { value: 0, label: "Su" },
+];
+
+// Map JS getDay() to a 0..6 Monday-start index. Sunday wraps to the end of the
+// week so multi-day picks always stay inside the same calendar row.
+const dayInMondayWeek = (d: number) => (d === 0 ? 6 : d - 1);
 
 // Generate time options for the dropdown (8 AM to 10 PM in 30-min increments)
 const generateTimeOptions = () => {
@@ -69,19 +85,20 @@ const generateTimeOptions = () => {
 
 const timeOptions = generateTimeOptions();
 
-export function AddEventModal({ 
-  isOpen, 
-  onClose, 
-  onAdd, 
+export function AddEventModal({
+  isOpen,
+  onClose,
+  onAdd,
   onUpdate,
   onDelete,
-  slotStart, 
+  slotStart,
   slotEnd,
-  editingEvent 
+  editingEvent
 }: AddEventModalProps) {
   const [selectedType, setSelectedType] = useState<CustomEventType | null>(null);
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
+  const [selectedDays, setSelectedDays] = useState<Set<number>>(new Set());
 
   const isEditMode = !!editingEvent;
 
@@ -98,8 +115,9 @@ export function AddEventModal({
         };
         setStartTime(formatTimeValue(editingEvent.start));
         setEndTime(formatTimeValue(editingEvent.end));
+        setSelectedDays(new Set([editingEvent.start.getDay()]));
       } else if (slotStart && slotEnd) {
-        // Add mode - populate from slot selection
+        // Add mode - populate from slot selection. Pre-select the slot's day.
         const formatTimeValue = (date: Date) => {
           const h = getHours(date);
           const m = getMinutes(date);
@@ -108,9 +126,26 @@ export function AddEventModal({
         setStartTime(formatTimeValue(slotStart));
         setEndTime(formatTimeValue(slotEnd));
         setSelectedType(null);
+        setSelectedDays(new Set([slotStart.getDay()]));
       }
     }
   }, [slotStart, slotEnd, isOpen, editingEvent]);
+
+  const toggleDay = (day: number) => {
+    setSelectedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
+      return next;
+    });
+  };
+
+  const dayChipsLabel = useMemo(() => {
+    if (selectedDays.size === 0) return null;
+    return DAY_CHIPS.filter((c) => selectedDays.has(c.value))
+      .map((c) => c.label)
+      .join("");
+  }, [selectedDays]);
 
   const handleSubmit = () => {
     if (!startTime || !endTime) return;
@@ -121,21 +156,23 @@ export function AddEventModal({
     const baseDate = editingEvent?.start || slotStart;
     if (!baseDate) return;
 
-    const start = setMinutes(setHours(baseDate, startH), startM);
-    const end = setMinutes(setHours(baseDate, endH), endM);
-
     if (isEditMode && editingEvent && onUpdate) {
-      // Update existing event (including type if changed)
+      // Edit stays single-day — recompute Dates anchored to the existing date.
+      const start = setMinutes(setHours(baseDate, startH), startM);
+      const end = setMinutes(setHours(baseDate, endH), endM);
       onUpdate(editingEvent.id, start, end, selectedType || undefined);
-    } else if (selectedType) {
-      // Add new event
+    } else if (selectedType && selectedDays.size > 0) {
+      // Add mode: emit one event per selected day, all in slotStart's week.
+      const baseInWeek = dayInMondayWeek(baseDate.getDay());
       const title = EVENT_TYPE_LABELS[selectedType];
-      onAdd({
-        title,
-        type: selectedType,
-        start,
-        end,
+      const events = Array.from(selectedDays).map((targetDay) => {
+        const targetInWeek = dayInMondayWeek(targetDay);
+        const eventDate = addDays(baseDate, targetInWeek - baseInWeek);
+        const start = setMinutes(setHours(eventDate, startH), startM);
+        const end = setMinutes(setHours(eventDate, endH), endM);
+        return { title, type: selectedType, start, end };
       });
+      onAdd(events);
     }
 
     handleClose();
@@ -152,12 +189,13 @@ export function AddEventModal({
     setSelectedType(null);
     setStartTime("");
     setEndTime("");
+    setSelectedDays(new Set());
     onClose();
   };
 
-  const canSubmit = isEditMode 
-    ? (startTime && endTime && selectedType)
-    : (selectedType && startTime && endTime);
+  const canSubmit = isEditMode
+    ? !!(startTime && endTime && selectedType)
+    : !!(selectedType && startTime && endTime && selectedDays.size > 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -165,11 +203,15 @@ export function AddEventModal({
         <DialogHeader>
           <DialogTitle>{isEditMode ? "Edit Custom Block" : "Add Custom Block"}</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           {(slotStart || editingEvent) && (
             <div className="text-sm text-muted-foreground">
-              {format(editingEvent?.start || slotStart!, "EEEE, MMM d")}
+              {isEditMode
+                ? format(editingEvent?.start || slotStart!, "EEEE, MMM d")
+                : dayChipsLabel
+                  ? `Days: ${dayChipsLabel}`
+                  : "Select at least one day"}
             </div>
           )}
 
@@ -193,6 +235,31 @@ export function AddEventModal({
               ))}
             </div>
           </div>
+
+          {!isEditMode && (
+            <div className="space-y-2">
+              <Label>Days</Label>
+              <div className="grid grid-cols-7 gap-1">
+                {DAY_CHIPS.map((chip) => {
+                  const active = selectedDays.has(chip.value);
+                  return (
+                    <button
+                      key={chip.value}
+                      type="button"
+                      onClick={() => toggleDay(chip.value)}
+                      className={`py-1.5 rounded-md border text-xs font-medium transition-colors ${
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {chip.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -239,7 +306,11 @@ export function AddEventModal({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={!canSubmit}>
-            {isEditMode ? "Save Changes" : "Add Block"}
+            {isEditMode
+              ? "Save Changes"
+              : selectedDays.size > 1
+                ? `Add ${selectedDays.size} Blocks`
+                : "Add Block"}
           </Button>
         </DialogFooter>
       </DialogContent>
