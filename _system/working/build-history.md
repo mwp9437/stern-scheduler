@@ -103,3 +103,67 @@ Full append-only archive of all session summaries. NOT used day-to-day. See `cur
 - Wishlist prompt in conversation covers 5 deferred features (multi-scenario, multi-day custom blocks, click-to-edit class, slot-modal course picker, off-calendar dates inline). Paste into a fresh session.
 
 ---
+
+## [2026-05-09] — Session: Ship all 5 deferred wishlist items + User Guide refresh
+
+**What was done:**
+- Shipped 6 atomic commits to main (Lovable auto-deploys to stern-scheduler.lovable.app):
+  - `d3533e9` scenarios: Plan A / Plan B switcher with per-user scenarios table
+  - `e133d92` calendar: open detail modal on course click with remove + section swap
+  - `1c6a4b1` course-finder: show date range for off-calendar courses, drop day prefix
+  - `8bb7aad` custom-blocks: day-chip selector to AddEventModal, batch insert N rows
+  - `4dd4330` add-event-modal: "Pick a Course" tab listing courses meeting at slot
+  - `f48991a` user-guide: refresh for scenarios, course-click, multi-day blocks, course tab
+- Applied migration `20260509120000_add_user_schedule_scenarios.sql` to live Supabase: created `user_schedule_scenarios` (id uuid, user_id, name, is_active, created_at) with owner-only RLS + partial unique index `(user_id) WHERE is_active`; added `scenario_id uuid NOT NULL` to `user_schedules` with FK ON DELETE CASCADE + index. Backfill confirmed: 25 distinct users got "Plan A" with `is_active=true`; 161 rows mapped; 0 nulls.
+- Regenerated `src/integrations/supabase/types.ts` from the new schema.
+- New `useScenarios` hook (list / create / duplicate / rename / delete / setActive) with optimistic invalidation and 23505 (unique) error toast handling. setActive uses two-step deactivate-then-activate (partial index allows zero active briefly but never two).
+- Refactored `useUserSchedule` to accept `scenarioId`; query key is now `["user_schedules", userId, scenarioId]`; all 4 mutations include `scenario_id` and defense-in-depth `.eq("scenario_id", scenarioId)` on update/delete; added `swapCourse` (DELETE + INSERT) and `addCustomEvents` (single batch insert for N rows).
+- New `ScenarioSwitcher` dropdown placed next to logo via `Header.scenarioSwitcher` ReactNode slot (logged-in only). Create / duplicate (with `(copy)` collision-loop suggestion) / rename / delete dialogs reuse shadcn Dialog + AlertDialog. Delete disabled when only one scenario; auto-creates a fresh "Plan A" if user deletes their last scenario.
+- Index.tsx auto-creates "Plan A" for first-time logged-in users with no scenarios row (ref guard against StrictMode double-fire; unique constraint also makes insert idempotent).
+- New `CourseDetailModal`: shows title, instructor, meeting times, dates, syllabus link, full description; "Remove from schedule" + "Swap to another section" panel listing all `(subject, catalog)` siblings with conflict badges (reuses `coursesConflict` + `courseConflictsWithEvent`).
+- `ScheduleCalendar.handleSelectEvent` now fires for both course and custom events; Index.tsx routes by `event.resource.type`.
+- New helpers in `src/types/scheduler.ts`: `parseDateSpanDays(datesFull)`, `isShortSpan(course)` (≤7 days), `formatOffCalendarTime(meetingTimesFull)` (moved from OffCalendarCoursesTable for reuse). CourseFinder list-row meta line switches to `credits | start–end | dates_full` for off-calendar / short-span courses (no day-letter prefix).
+- AddEventModal restructured: day-chip selector (M T W R F Sa Su) above time picker, Monday-anchored so Sunday picks stay in slot's calendar row; emits N events via batch insert with single toast ("3 blocks added to schedule"). Wrapped in shadcn Tabs ("Custom Block" / "Pick a Course") in add mode; tabs hidden in edit mode. Course tab lists `courseMeetsAtTime` matches with conflict badges and one-click Add/Remove.
+- User Guide modal rewritten for 6 sections: find courses, add a course, manage on calendar, custom blocks, scenarios, stats + off-calendar. Modal widened to `max-w-lg` with overflow scroll.
+- Memory cleanup: deleted `followups_fall_2026.md` (all 4 items shipped); removed entry from MEMORY.md index.
+
+**Files created:**
+- `stern-scheduler/supabase/migrations/20260509120000_add_user_schedule_scenarios.sql` — new scenarios table + scenario_id FK on user_schedules, with backfill.
+- `stern-scheduler/src/hooks/useScenarios.ts` — full CRUD + setActive for user_schedule_scenarios.
+- `stern-scheduler/src/components/scheduler/ScenarioSwitcher.tsx` — dropdown + 3 name dialogs + delete confirmation.
+- `stern-scheduler/src/components/scheduler/CourseDetailModal.tsx` — course detail + remove + section swap.
+
+**Files modified:**
+- `stern-scheduler/src/integrations/supabase/types.ts` — regenerated; includes `user_schedule_scenarios` table + `scenario_id` on `user_schedules`.
+- `stern-scheduler/src/hooks/useUserSchedule.ts` — scenarioId arg, scoped queries, `swapCourse` + `addCustomEvents` batch mutations.
+- `stern-scheduler/src/types/scheduler.ts` — `parseDateSpanDays`, `isShortSpan`, `formatOffCalendarTime` helpers.
+- `stern-scheduler/src/components/scheduler/Header.tsx` — `scenarioSwitcher` slot prop + rewritten User Guide (6 sections).
+- `stern-scheduler/src/components/scheduler/ScheduleCalendar.tsx` — handleSelectEvent fires for course events too.
+- `stern-scheduler/src/components/scheduler/AddEventModal.tsx` — day-chip selector + Tabs + course list with conflict detection.
+- `stern-scheduler/src/components/scheduler/OffCalendarCoursesTable.tsx` — uses shared `formatOffCalendarTime`.
+- `stern-scheduler/src/components/scheduler/CourseFinder.tsx` — date-range display for off-calendar / short-span.
+- `stern-scheduler/src/pages/Index.tsx` — useScenarios wiring, auto-create "Plan A" effect, CourseDetailModal mount, AddEventModal new props.
+
+**Files deleted:**
+- `~/.claude/projects/.../memory/followups_fall_2026.md` — all 4 items shipped (memory index updated).
+
+**Decisions made:**
+- Multi-scenario v1: single-active switching only. Side-by-side compare deferred to v2.
+- Click-course v1: include section Swap (lists same `(subject, catalog)` siblings with conflict badges and one-click swap), not just info+remove.
+- Default scenario name: **"Plan A"** (sets the Plan A / Plan B mental model immediately). New scenarios default to numbered next.
+- Schema: new `user_schedule_scenarios` table with FK on user_schedules (option B) over `scenario_name` column (option A) — lets us store per-scenario metadata (name, is_active, created_at) cleanly without rewriting all rows on rename.
+- Active scenario tracked DB-side via partial unique index `(user_id) WHERE is_active` for cross-device persistence (vs. localStorage).
+- `setActive` uses two-step (deactivate active → activate target) instead of an RPC. Partial unique index allows zero active briefly but never two; safe.
+- Multi-day custom blocks emit N rows for slot's week only (no recurrence schema). Day handling Monday-anchored — Sunday picks stay in same calendar row.
+- AddEventModal restructured around shadcn Tabs (Custom Block / Pick a Course); tabs hidden in edit mode (course-pick is meaningless when editing an existing event).
+- 5 atomic commits + 1 user-guide commit, one feature each. Each pushed individually so Lovable redeploys incrementally and regressions surface fast.
+
+**Issues found and resolved:**
+- HMR drift after many sequential Edit calls produced false "change in order of Hooks" warnings on a stable Index.tsx (the previous-render fingerprint was a stale fiber). Stopping + restarting the preview server cleared it both times. Lesson: when running many edits during a feature build, restart the preview rather than trust the console buffer.
+- screenshot tool timed out twice while a modal was open during tests; falling back to `preview_eval` for body content checks worked fine.
+
+**Outstanding / next session:**
+- Logged-in user flows weren't smoke-tested end-to-end (anonymous render verified clean each commit). User to manually verify against production: scenario backfill, switch, duplicate, rename, delete; course-click detail modal + section swap; multi-day blocks; course-pick tab.
+- Roadmap items still queued (next batch): side-by-side scenario compare view (v2), mobile / responsive support, footer collapse state persistence, feedback rate-limiting / abuse protection, admin view for feedback submissions.
+
+---
